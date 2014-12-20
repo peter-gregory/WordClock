@@ -1,0 +1,3438 @@
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 1
+
+
+   1              		.cpu cortex-m0
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.code	16
+  13              		.file	"CyFlash.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.CySysFlashHandleLoadResult,"ax",%progbits
+  18              		.align	1
+  19              		.code	16
+  20              		.thumb_func
+  21              		.type	CySysFlashHandleLoadResult, %function
+  22              	CySysFlashHandleLoadResult:
+  23              	.LFB4:
+  24              		.file 1 ".\\Generated_Source\\PSoC4\\CyFlash.c"
+   1:.\Generated_Source\PSoC4/CyFlash.c **** /*******************************************************************************
+   2:.\Generated_Source\PSoC4/CyFlash.c **** * File Name: CyFlash.c
+   3:.\Generated_Source\PSoC4/CyFlash.c **** * Version 4.11
+   4:.\Generated_Source\PSoC4/CyFlash.c **** *
+   5:.\Generated_Source\PSoC4/CyFlash.c **** *  Description:
+   6:.\Generated_Source\PSoC4/CyFlash.c **** *   Provides an API for the FLASH.
+   7:.\Generated_Source\PSoC4/CyFlash.c **** *
+   8:.\Generated_Source\PSoC4/CyFlash.c **** *  Note:
+   9:.\Generated_Source\PSoC4/CyFlash.c **** *   Documentation of the API's in this file is located in the
+  10:.\Generated_Source\PSoC4/CyFlash.c **** *   System Reference Guide provided with PSoC Creator.
+  11:.\Generated_Source\PSoC4/CyFlash.c **** *
+  12:.\Generated_Source\PSoC4/CyFlash.c **** ********************************************************************************
+  13:.\Generated_Source\PSoC4/CyFlash.c **** * Copyright 2010-2014, Cypress Semiconductor Corporation. All rights reserved.
+  14:.\Generated_Source\PSoC4/CyFlash.c **** * You may use this file only in accordance with the license, terms, conditions,
+  15:.\Generated_Source\PSoC4/CyFlash.c **** * disclaimers, and limitations in the end user license agreement accompanying
+  16:.\Generated_Source\PSoC4/CyFlash.c **** * the software package with which this file was provided.
+  17:.\Generated_Source\PSoC4/CyFlash.c **** *******************************************************************************/
+  18:.\Generated_Source\PSoC4/CyFlash.c **** 
+  19:.\Generated_Source\PSoC4/CyFlash.c **** #include "CyFlash.h"
+  20:.\Generated_Source\PSoC4/CyFlash.c **** #include "cyPm.h"
+  21:.\Generated_Source\PSoC4/CyFlash.c **** 
+  22:.\Generated_Source\PSoC4/CyFlash.c **** #if ((CYDEV_CHIP_MEMBER_USED == CYDEV_CHIP_MEMBER_4A) || (CYDEV_CHIP_MEMBER_USED == CYDEV_CHIP_MEMB
+  23:.\Generated_Source\PSoC4/CyFlash.c ****     #define CYFLASH_CHECKSUM_WORKAROUND     1u
+  24:.\Generated_Source\PSoC4/CyFlash.c **** #endif  /* ((CYDEV_CHIP_MEMBER_USED == CYDEV_CHIP_MEMBER_4A) || (CYDEV_CHIP_MEMBER_USED == CYDEV_CH
+  25:.\Generated_Source\PSoC4/CyFlash.c **** 
+  26:.\Generated_Source\PSoC4/CyFlash.c **** 
+  27:.\Generated_Source\PSoC4/CyFlash.c **** #if (CY_PSOC4A)
+  28:.\Generated_Source\PSoC4/CyFlash.c **** 
+  29:.\Generated_Source\PSoC4/CyFlash.c ****     struct CySysFlashClockState
+  30:.\Generated_Source\PSoC4/CyFlash.c ****     {
+  31:.\Generated_Source\PSoC4/CyFlash.c ****         uint32   imoConfigReg;
+  32:.\Generated_Source\PSoC4/CyFlash.c ****     };
+  33:.\Generated_Source\PSoC4/CyFlash.c **** 
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 2
+
+
+  34:.\Generated_Source\PSoC4/CyFlash.c **** #else
+  35:.\Generated_Source\PSoC4/CyFlash.c **** 
+  36:.\Generated_Source\PSoC4/CyFlash.c ****     struct CySysFlashClockState
+  37:.\Generated_Source\PSoC4/CyFlash.c ****     {
+  38:.\Generated_Source\PSoC4/CyFlash.c ****         uint32 clkSelectReg;
+  39:.\Generated_Source\PSoC4/CyFlash.c ****         uint32 clkImoEna;
+  40:.\Generated_Source\PSoC4/CyFlash.c ****         uint32 clkImoFreq;
+  41:.\Generated_Source\PSoC4/CyFlash.c ****     };
+  42:.\Generated_Source\PSoC4/CyFlash.c **** 
+  43:.\Generated_Source\PSoC4/CyFlash.c **** #endif  /* (CY_PSOC4A) */
+  44:.\Generated_Source\PSoC4/CyFlash.c **** 
+  45:.\Generated_Source\PSoC4/CyFlash.c **** 
+  46:.\Generated_Source\PSoC4/CyFlash.c **** static uint32 CySysFlashExecSysCall(uint32 cmd, volatile const void *arg);
+  47:.\Generated_Source\PSoC4/CyFlash.c **** static uint32 CySysFlashCallProgramRow(uint32 rowNum, uint32 operation);
+  48:.\Generated_Source\PSoC4/CyFlash.c **** static uint32 CySysFlashHandleLoadResult(void);
+  49:.\Generated_Source\PSoC4/CyFlash.c **** #if (CY_PSOC4A)
+  50:.\Generated_Source\PSoC4/CyFlash.c ****     static void CySysFlashSetupClock(struct CySysFlashClockState *saved);
+  51:.\Generated_Source\PSoC4/CyFlash.c ****     static void CySysFlashRestoreClock(const struct CySysFlashClockState *saved);
+  52:.\Generated_Source\PSoC4/CyFlash.c **** #else
+  53:.\Generated_Source\PSoC4/CyFlash.c ****     static void CySysFlashSetupClock(struct CySysFlashClockState *saved);
+  54:.\Generated_Source\PSoC4/CyFlash.c ****     static void CySysFlashRestoreClock(const struct CySysFlashClockState *saved);
+  55:.\Generated_Source\PSoC4/CyFlash.c **** #endif  /* (CY_PSOC4A) */
+  56:.\Generated_Source\PSoC4/CyFlash.c **** 
+  57:.\Generated_Source\PSoC4/CyFlash.c **** 
+  58:.\Generated_Source\PSoC4/CyFlash.c **** #if (CY_PSOC4A)
+  59:.\Generated_Source\PSoC4/CyFlash.c **** 
+  60:.\Generated_Source\PSoC4/CyFlash.c ****     /*******************************************************************************
+  61:.\Generated_Source\PSoC4/CyFlash.c ****     * Function Name: CySysFlashSetupClock
+  62:.\Generated_Source\PSoC4/CyFlash.c ****     ********************************************************************************
+  63:.\Generated_Source\PSoC4/CyFlash.c ****     *
+  64:.\Generated_Source\PSoC4/CyFlash.c ****     * Summary:
+  65:.\Generated_Source\PSoC4/CyFlash.c ****     *  Configures the device clock settings for the flash write.
+  66:.\Generated_Source\PSoC4/CyFlash.c ****     *
+  67:.\Generated_Source\PSoC4/CyFlash.c ****     * Parameters:
+  68:.\Generated_Source\PSoC4/CyFlash.c ****     *  saved:
+  69:.\Generated_Source\PSoC4/CyFlash.c ****     *   Pointer to the structure where the data are saved.
+  70:.\Generated_Source\PSoC4/CyFlash.c ****     *
+  71:.\Generated_Source\PSoC4/CyFlash.c ****     * Return:
+  72:.\Generated_Source\PSoC4/CyFlash.c ****     *  None
+  73:.\Generated_Source\PSoC4/CyFlash.c ****     *
+  74:.\Generated_Source\PSoC4/CyFlash.c ****     *******************************************************************************/
+  75:.\Generated_Source\PSoC4/CyFlash.c ****     static void CySysFlashSetupClock(struct CySysFlashClockState *saved)
+  76:.\Generated_Source\PSoC4/CyFlash.c ****     {
+  77:.\Generated_Source\PSoC4/CyFlash.c ****         /* Preserve IMO configuration that could be changed
+  78:.\Generated_Source\PSoC4/CyFlash.c ****         * during syscall execution (Cypress ID #150448).
+  79:.\Generated_Source\PSoC4/CyFlash.c ****         */
+  80:.\Generated_Source\PSoC4/CyFlash.c ****         saved->imoConfigReg = CY_SYS_CLK_IMO_CONFIG_REG;
+  81:.\Generated_Source\PSoC4/CyFlash.c ****     }
+  82:.\Generated_Source\PSoC4/CyFlash.c **** 
+  83:.\Generated_Source\PSoC4/CyFlash.c **** 
+  84:.\Generated_Source\PSoC4/CyFlash.c ****     /*******************************************************************************
+  85:.\Generated_Source\PSoC4/CyFlash.c ****     * Function Name: CySysFlashRestoreClock
+  86:.\Generated_Source\PSoC4/CyFlash.c ****     ********************************************************************************
+  87:.\Generated_Source\PSoC4/CyFlash.c ****     *
+  88:.\Generated_Source\PSoC4/CyFlash.c ****     * Summary:
+  89:.\Generated_Source\PSoC4/CyFlash.c ****     *  Restores the device clock settings.
+  90:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 3
+
+
+  91:.\Generated_Source\PSoC4/CyFlash.c ****     * Parameters:
+  92:.\Generated_Source\PSoC4/CyFlash.c ****     *  saved:
+  93:.\Generated_Source\PSoC4/CyFlash.c ****     *   Pointer to the structure from where the data are saved.
+  94:.\Generated_Source\PSoC4/CyFlash.c ****     *
+  95:.\Generated_Source\PSoC4/CyFlash.c ****     * Return:
+  96:.\Generated_Source\PSoC4/CyFlash.c ****     *  None
+  97:.\Generated_Source\PSoC4/CyFlash.c ****     *
+  98:.\Generated_Source\PSoC4/CyFlash.c ****     *******************************************************************************/
+  99:.\Generated_Source\PSoC4/CyFlash.c ****     static void CySysFlashRestoreClock(const struct CySysFlashClockState *saved)
+ 100:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 101:.\Generated_Source\PSoC4/CyFlash.c ****         CY_SYS_CLK_IMO_CONFIG_REG = saved->imoConfigReg;
+ 102:.\Generated_Source\PSoC4/CyFlash.c ****     }
+ 103:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 104:.\Generated_Source\PSoC4/CyFlash.c **** #else
+ 105:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 106:.\Generated_Source\PSoC4/CyFlash.c ****     /*******************************************************************************
+ 107:.\Generated_Source\PSoC4/CyFlash.c ****     * Function Name: CySysFlashSetupClock
+ 108:.\Generated_Source\PSoC4/CyFlash.c ****     ********************************************************************************
+ 109:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 110:.\Generated_Source\PSoC4/CyFlash.c ****     * Summary:
+ 111:.\Generated_Source\PSoC4/CyFlash.c ****     *  Configures the device clock settings for the flash write.
+ 112:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 113:.\Generated_Source\PSoC4/CyFlash.c ****     * Parameters:
+ 114:.\Generated_Source\PSoC4/CyFlash.c ****     *  saved:
+ 115:.\Generated_Source\PSoC4/CyFlash.c ****     *   Pointer to the structure where the data are saved.
+ 116:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 117:.\Generated_Source\PSoC4/CyFlash.c ****     * Return:
+ 118:.\Generated_Source\PSoC4/CyFlash.c ****     *  None
+ 119:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 120:.\Generated_Source\PSoC4/CyFlash.c ****     *******************************************************************************/
+ 121:.\Generated_Source\PSoC4/CyFlash.c ****     static void CySysFlashSetupClock(struct CySysFlashClockState *saved)
+ 122:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 123:.\Generated_Source\PSoC4/CyFlash.c ****         saved->clkSelectReg = CY_SYS_CLK_SELECT_REG;
+ 124:.\Generated_Source\PSoC4/CyFlash.c ****         saved->clkImoEna    = CY_SYS_CLK_IMO_CONFIG_REG & CY_SYS_CLK_IMO_CONFIG_ENABLE;
+ 125:.\Generated_Source\PSoC4/CyFlash.c ****         saved->clkImoFreq   = CY_SYS_CLK_IMO_MIN_FREQ_MHZ + (CY_SYS_CLK_IMO_SELECT_REG << 2);
+ 126:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 127:.\Generated_Source\PSoC4/CyFlash.c ****         /* The FM-Lite IP (s8fmlt) uses the IMO at 48MHz for the pump clock and SPC
+ 128:.\Generated_Source\PSoC4/CyFlash.c ****          * timer clock. The PUMP_SEL and HF clock must be set to IMO before calling
+ 129:.\Generated_Source\PSoC4/CyFlash.c ****          * Flash write or erase operation.
+ 130:.\Generated_Source\PSoC4/CyFlash.c ****         */
+ 131:.\Generated_Source\PSoC4/CyFlash.c ****         if ((saved->clkImoFreq != 48u) ||
+ 132:.\Generated_Source\PSoC4/CyFlash.c ****             ((saved->clkSelectReg & CY_SYS_CLK_SELECT_DIRECT_SEL_MASK) != CY_SYS_CLK_HFCLK_IMO) ||
+ 133:.\Generated_Source\PSoC4/CyFlash.c ****             (((saved->clkSelectReg >> CY_SYS_CLK_SELECT_PUMP_SEL_SHIFT) & CY_SYS_CLK_SELECT_PUMP_SE
+ 134:.\Generated_Source\PSoC4/CyFlash.c ****                 CY_SYS_CLK_SELECT_PUMP_SEL_IMO))
+ 135:.\Generated_Source\PSoC4/CyFlash.c ****         {
+ 136:.\Generated_Source\PSoC4/CyFlash.c ****             CySysClkWriteHfclkDiv(CY_SYS_CLK_HFCLK_DIV_4);
+ 137:.\Generated_Source\PSoC4/CyFlash.c ****             if (saved->clkImoFreq != 48u)
+ 138:.\Generated_Source\PSoC4/CyFlash.c ****             {
+ 139:.\Generated_Source\PSoC4/CyFlash.c ****                 CySysClkWriteImoFreq(48u);
+ 140:.\Generated_Source\PSoC4/CyFlash.c ****             }
+ 141:.\Generated_Source\PSoC4/CyFlash.c ****             CySysClkImoStart();
+ 142:.\Generated_Source\PSoC4/CyFlash.c ****             CySysClkWriteHfclkDirect(CY_SYS_CLK_HFCLK_IMO);
+ 143:.\Generated_Source\PSoC4/CyFlash.c ****             /* Set IMO output as clock source for charge pump clock */
+ 144:.\Generated_Source\PSoC4/CyFlash.c ****             CY_SYS_CLK_SELECT_REG &=
+ 145:.\Generated_Source\PSoC4/CyFlash.c ****                 ((uint32)~(uint32)(CY_SYS_CLK_SELECT_PUMP_SEL_MASK << CY_SYS_CLK_SELECT_PUMP_SEL_SH
+ 146:.\Generated_Source\PSoC4/CyFlash.c ****             CY_SYS_CLK_SELECT_REG |= (uint32)((uint32)1u << CY_SYS_CLK_SELECT_PUMP_SEL_SHIFT);
+ 147:.\Generated_Source\PSoC4/CyFlash.c ****         }
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 4
+
+
+ 148:.\Generated_Source\PSoC4/CyFlash.c ****     }
+ 149:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 150:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 151:.\Generated_Source\PSoC4/CyFlash.c ****     /*******************************************************************************
+ 152:.\Generated_Source\PSoC4/CyFlash.c ****     * Function Name: CySysFlashRestoreClock
+ 153:.\Generated_Source\PSoC4/CyFlash.c ****     ********************************************************************************
+ 154:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 155:.\Generated_Source\PSoC4/CyFlash.c ****     * Summary:
+ 156:.\Generated_Source\PSoC4/CyFlash.c ****     *  Restores the device clock settings.
+ 157:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 158:.\Generated_Source\PSoC4/CyFlash.c ****     * Parameters:
+ 159:.\Generated_Source\PSoC4/CyFlash.c ****     *  saved:
+ 160:.\Generated_Source\PSoC4/CyFlash.c ****     *   Pointer to the structure from where the data are saved.
+ 161:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 162:.\Generated_Source\PSoC4/CyFlash.c ****     * Return:
+ 163:.\Generated_Source\PSoC4/CyFlash.c ****     *  None
+ 164:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 165:.\Generated_Source\PSoC4/CyFlash.c ****     *******************************************************************************/
+ 166:.\Generated_Source\PSoC4/CyFlash.c ****     static void CySysFlashRestoreClock(const struct CySysFlashClockState *saved)
+ 167:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 168:.\Generated_Source\PSoC4/CyFlash.c ****         if ((saved->clkImoFreq != 48u) ||
+ 169:.\Generated_Source\PSoC4/CyFlash.c ****             ((saved->clkSelectReg & CY_SYS_CLK_SELECT_DIRECT_SEL_MASK) != CY_SYS_CLK_HFCLK_IMO) ||
+ 170:.\Generated_Source\PSoC4/CyFlash.c ****             (((saved->clkSelectReg >> CY_SYS_CLK_SELECT_PUMP_SEL_SHIFT) & CY_SYS_CLK_SELECT_PUMP_SE
+ 171:.\Generated_Source\PSoC4/CyFlash.c ****                 CY_SYS_CLK_SELECT_PUMP_SEL_IMO))
+ 172:.\Generated_Source\PSoC4/CyFlash.c ****         {
+ 173:.\Generated_Source\PSoC4/CyFlash.c ****             if (saved->clkImoFreq != 48u)
+ 174:.\Generated_Source\PSoC4/CyFlash.c ****             {
+ 175:.\Generated_Source\PSoC4/CyFlash.c ****                 CySysClkWriteImoFreq(saved->clkImoFreq);
+ 176:.\Generated_Source\PSoC4/CyFlash.c ****             }
+ 177:.\Generated_Source\PSoC4/CyFlash.c ****             CySysClkWriteHfclkDiv(CY_SYS_CLK_HFCLK_DIV_8);
+ 178:.\Generated_Source\PSoC4/CyFlash.c ****             CySysClkWriteHfclkDirect(saved->clkSelectReg & CY_SYS_CLK_SELECT_DIRECT_SEL_MASK);
+ 179:.\Generated_Source\PSoC4/CyFlash.c ****             CY_SYS_CLK_SELECT_REG = saved->clkSelectReg;
+ 180:.\Generated_Source\PSoC4/CyFlash.c ****             if (0u == saved->clkImoEna)
+ 181:.\Generated_Source\PSoC4/CyFlash.c ****             {
+ 182:.\Generated_Source\PSoC4/CyFlash.c ****                 CySysClkImoStop();
+ 183:.\Generated_Source\PSoC4/CyFlash.c ****             }
+ 184:.\Generated_Source\PSoC4/CyFlash.c ****         }
+ 185:.\Generated_Source\PSoC4/CyFlash.c ****     }
+ 186:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 187:.\Generated_Source\PSoC4/CyFlash.c **** #endif  /* (CY_PSOC4A) */
+ 188:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 189:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 190:.\Generated_Source\PSoC4/CyFlash.c **** /*******************************************************************************
+ 191:.\Generated_Source\PSoC4/CyFlash.c **** * Function Name: CySysFlashExecSysCall
+ 192:.\Generated_Source\PSoC4/CyFlash.c **** ********************************************************************************
+ 193:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 194:.\Generated_Source\PSoC4/CyFlash.c **** * Summary:
+ 195:.\Generated_Source\PSoC4/CyFlash.c **** *  Executes specified system call command.
+ 196:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 197:.\Generated_Source\PSoC4/CyFlash.c **** * Parameters:
+ 198:.\Generated_Source\PSoC4/CyFlash.c **** *  uint32 cmd:
+ 199:.\Generated_Source\PSoC4/CyFlash.c **** *   CY_FLASH_SILICON_ID_OPCODE - This returns a 12 bit Family ID, 16 bit
+ 200:.\Generated_Source\PSoC4/CyFlash.c **** *                                 Silicon ID and 8 bit Revision ID.
+ 201:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 202:.\Generated_Source\PSoC4/CyFlash.c **** *   CY_FLASH_LOAD_BYTE_OPCODE  - Loads data to the page latch buffer to be
+ 203:.\Generated_Source\PSoC4/CyFlash.c **** *                                programmed into the FLASH.
+ 204:.\Generated_Source\PSoC4/CyFlash.c **** *
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 5
+
+
+ 205:.\Generated_Source\PSoC4/CyFlash.c **** *  volatile void *arg:
+ 206:.\Generated_Source\PSoC4/CyFlash.c **** *   Parameters of the command specified by the cmd parameter.
+ 207:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 208:.\Generated_Source\PSoC4/CyFlash.c **** * Return:
+ 209:.\Generated_Source\PSoC4/CyFlash.c **** *  Result of the system call execution.
+ 210:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 211:.\Generated_Source\PSoC4/CyFlash.c **** *******************************************************************************/
+ 212:.\Generated_Source\PSoC4/CyFlash.c **** static uint32 CySysFlashExecSysCall(uint32 cmd, volatile const void *arg)
+ 213:.\Generated_Source\PSoC4/CyFlash.c **** {
+ 214:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSARG_REG = (uint32)arg;
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 216:.\Generated_Source\PSoC4/CyFlash.c ****     while ((CY_FLASH_CPUSS_SYSREQ_REG & CY_FLASH_CPUSS_REQ_START) != 0u)
+ 217:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 218:.\Generated_Source\PSoC4/CyFlash.c ****         /* Wait for command to be executed */
+ 219:.\Generated_Source\PSoC4/CyFlash.c ****     }
+ 220:.\Generated_Source\PSoC4/CyFlash.c ****     return CY_FLASH_CPUSS_SYSARG_REG;
+ 221:.\Generated_Source\PSoC4/CyFlash.c **** }
+ 222:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 223:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 224:.\Generated_Source\PSoC4/CyFlash.c **** /*******************************************************************************
+ 225:.\Generated_Source\PSoC4/CyFlash.c **** * Function Name: CySysFlashCallProgramRow
+ 226:.\Generated_Source\PSoC4/CyFlash.c **** ********************************************************************************
+ 227:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 228:.\Generated_Source\PSoC4/CyFlash.c **** * Summary:
+ 229:.\Generated_Source\PSoC4/CyFlash.c **** *  Executes the Program Row command.
+ 230:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 231:.\Generated_Source\PSoC4/CyFlash.c **** * Parameters:
+ 232:.\Generated_Source\PSoC4/CyFlash.c **** *  uint32 rowNum:
+ 233:.\Generated_Source\PSoC4/CyFlash.c **** *   Flash row number.
+ 234:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 235:.\Generated_Source\PSoC4/CyFlash.c **** *  uint32 operation:
+ 236:.\Generated_Source\PSoC4/CyFlash.c **** *    Operation to be executed:
+ 237:.\Generated_Source\PSoC4/CyFlash.c **** *    CY_FLASH_WRITE_ROW_OPCODE - Write row: erase and program flash row.
+ 238:.\Generated_Source\PSoC4/CyFlash.c **** *    CY_FLASH_PROGRAM_ROW_OPCODE - Program flash row.
+ 239:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 240:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 241:.\Generated_Source\PSoC4/CyFlash.c **** * Return:
+ 242:.\Generated_Source\PSoC4/CyFlash.c **** *  Status of the last executed command.
+ 243:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 244:.\Generated_Source\PSoC4/CyFlash.c **** *******************************************************************************/
+ 245:.\Generated_Source\PSoC4/CyFlash.c **** static uint32 CySysFlashCallProgramRow(uint32 rowNum, uint32 operation)
+ 246:.\Generated_Source\PSoC4/CyFlash.c **** {
+ 247:.\Generated_Source\PSoC4/CyFlash.c ****     volatile struct
+ 248:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 249:.\Generated_Source\PSoC4/CyFlash.c ****         uint8 key1;
+ 250:.\Generated_Source\PSoC4/CyFlash.c ****         uint8 key2;
+ 251:.\Generated_Source\PSoC4/CyFlash.c ****         uint16 row;
+ 252:.\Generated_Source\PSoC4/CyFlash.c ****     } args;
+ 253:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 254:.\Generated_Source\PSoC4/CyFlash.c ****     args.key1 = (uint8)CY_FLASH_SROM_KEY1;
+ 255:.\Generated_Source\PSoC4/CyFlash.c ****     args.key2 = (uint8)(CY_FLASH_SROM_KEY2 + operation);
+ 256:.\Generated_Source\PSoC4/CyFlash.c ****     args.row = (uint16) rowNum;
+ 257:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 258:.\Generated_Source\PSoC4/CyFlash.c ****     return CySysFlashExecSysCall(operation, &args);
+ 259:.\Generated_Source\PSoC4/CyFlash.c **** }
+ 260:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 261:.\Generated_Source\PSoC4/CyFlash.c **** 
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 6
+
+
+ 262:.\Generated_Source\PSoC4/CyFlash.c **** /*******************************************************************************
+ 263:.\Generated_Source\PSoC4/CyFlash.c **** * Function Name: CySysFlashHandleLoadResult
+ 264:.\Generated_Source\PSoC4/CyFlash.c **** ********************************************************************************
+ 265:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 266:.\Generated_Source\PSoC4/CyFlash.c **** * Summary:
+ 267:.\Generated_Source\PSoC4/CyFlash.c **** *  Returns the status of the last executed command.
+ 268:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 269:.\Generated_Source\PSoC4/CyFlash.c **** * Parameters:
+ 270:.\Generated_Source\PSoC4/CyFlash.c **** *  None
+ 271:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 272:.\Generated_Source\PSoC4/CyFlash.c **** * Return:
+ 273:.\Generated_Source\PSoC4/CyFlash.c **** *  Status of the last executed command.
+ 274:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 275:.\Generated_Source\PSoC4/CyFlash.c **** *******************************************************************************/
+ 276:.\Generated_Source\PSoC4/CyFlash.c **** static uint32 CySysFlashHandleLoadResult(void)
+ 277:.\Generated_Source\PSoC4/CyFlash.c **** {
+  25              		.loc 1 277 0
+  26              		.cfi_startproc
+ 278:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 value = CY_FLASH_CPUSS_SYSARG_REG;
+  27              		.loc 1 278 0
+  28 0000 094A     		ldr	r2, .L10
+ 277:.\Generated_Source\PSoC4/CyFlash.c **** {
+  29              		.loc 1 277 0
+  30 0002 10B5     		push	{r4, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 8
+  33              		.cfi_offset 4, -8
+  34              		.cfi_offset 14, -4
+  35              		.loc 1 278 0
+  36 0004 1368     		ldr	r3, [r2]
+  37              	.LVL0:
+ 279:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 retValue = CYRET_SUCCESS;
+  38              		.loc 1 279 0
+  39 0006 0020     		mov	r0, #0
+  40 0008 141C     		mov	r4, r2
+  41              	.LVL1:
+  42              	.L2:
+ 280:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 281:.\Generated_Source\PSoC4/CyFlash.c ****     /* Check if value is written to SRAM_BASE */
+ 282:.\Generated_Source\PSoC4/CyFlash.c ****     while (((value & CY_FLASH_SROM_CMD_RETURN_MASK) != CY_FLASH_SROM_CMD_RETURN_SUCC) && (retValue 
+  43              		.loc 1 282 0 discriminator 1
+  44 000a 1A0F     		lsr	r2, r3, #28
+  45 000c 1107     		lsl	r1, r2, #28
+  46 000e 0A2A     		cmp	r2, #10
+  47 0010 08D0     		beq	.L8
+  48              		.loc 1 282 0 is_stmt 0 discriminator 2
+  49 0012 0028     		cmp	r0, #0
+  50 0014 06D1     		bne	.L8
+  51              	.L5:
+ 283:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 284:.\Generated_Source\PSoC4/CyFlash.c ****         if ((value & CY_FLASH_SROM_CMD_RETURN_MASK) == CY_FLASH_SROM_CMD_RETURN_MASK)
+  52              		.loc 1 284 0 is_stmt 1
+  53 0016 F022     		mov	r2, #240
+  54 0018 1206     		lsl	r2, r2, #24
+  55 001a 9142     		cmp	r1, r2
+  56 001c 00D1     		bne	.L3
+ 285:.\Generated_Source\PSoC4/CyFlash.c ****         {
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 7
+
+
+ 286:.\Generated_Source\PSoC4/CyFlash.c ****             retValue = value;   /* Error value */
+  57              		.loc 1 286 0
+  58 001e 181C     		mov	r0, r3
+  59              	.LVL2:
+  60              	.L3:
+ 287:.\Generated_Source\PSoC4/CyFlash.c ****         }
+ 288:.\Generated_Source\PSoC4/CyFlash.c ****         value = CY_FLASH_CPUSS_SYSARG_REG;
+  61              		.loc 1 288 0
+  62 0020 2368     		ldr	r3, [r4]
+  63              	.LVL3:
+  64 0022 F2E7     		b	.L2
+  65              	.L8:
+ 289:.\Generated_Source\PSoC4/CyFlash.c ****     }
+ 290:.\Generated_Source\PSoC4/CyFlash.c ****     return retValue;
+ 291:.\Generated_Source\PSoC4/CyFlash.c **** }
+  66              		.loc 1 291 0
+  67              		@ sp needed for prologue
+  68 0024 10BD     		pop	{r4, pc}
+  69              	.L11:
+  70 0026 C046     		.align	2
+  71              	.L10:
+  72 0028 08000040 		.word	1073741832
+  73              		.cfi_endproc
+  74              	.LFE4:
+  75              		.size	CySysFlashHandleLoadResult, .-CySysFlashHandleLoadResult
+  76              		.section	.text.CySysFlashWriteRow,"ax",%progbits
+  77              		.align	1
+  78              		.global	CySysFlashWriteRow
+  79              		.code	16
+  80              		.thumb_func
+  81              		.type	CySysFlashWriteRow, %function
+  82              	CySysFlashWriteRow:
+  83              	.LFB5:
+ 292:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 293:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 294:.\Generated_Source\PSoC4/CyFlash.c **** /*******************************************************************************
+ 295:.\Generated_Source\PSoC4/CyFlash.c **** * Function Name: CySysFlashWriteRow
+ 296:.\Generated_Source\PSoC4/CyFlash.c **** ********************************************************************************
+ 297:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 298:.\Generated_Source\PSoC4/CyFlash.c **** * Summary:
+ 299:.\Generated_Source\PSoC4/CyFlash.c **** *  Writes a row of Flash.
+ 300:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 301:.\Generated_Source\PSoC4/CyFlash.c **** * Parameters:
+ 302:.\Generated_Source\PSoC4/CyFlash.c **** *  uint16 rowNum:
+ 303:.\Generated_Source\PSoC4/CyFlash.c **** *   Row number. Each row is 128 bytes so a 32KB flash memory will have a valid
+ 304:.\Generated_Source\PSoC4/CyFlash.c **** *   range of [0-255].
+ 305:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 306:.\Generated_Source\PSoC4/CyFlash.c **** *  uint8* rowData:
+ 307:.\Generated_Source\PSoC4/CyFlash.c **** *   Array of bytes to write.
+ 308:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 309:.\Generated_Source\PSoC4/CyFlash.c **** * Return:
+ 310:.\Generated_Source\PSoC4/CyFlash.c **** *  Status
+ 311:.\Generated_Source\PSoC4/CyFlash.c **** *     Value             Description
+ 312:.\Generated_Source\PSoC4/CyFlash.c **** *    CYRET_SUCCESS     Successful
+ 313:.\Generated_Source\PSoC4/CyFlash.c **** *    CYRET_LOCKED      Flash writing already in use
+ 314:.\Generated_Source\PSoC4/CyFlash.c **** *    CYRET_CANCELED    Command not accepted
+ 315:.\Generated_Source\PSoC4/CyFlash.c **** *    CYRET_BAD_PARAM   One or more invalid parameters
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 8
+
+
+ 316:.\Generated_Source\PSoC4/CyFlash.c **** *    Other non-zero    Failure
+ 317:.\Generated_Source\PSoC4/CyFlash.c **** *
+ 318:.\Generated_Source\PSoC4/CyFlash.c **** *******************************************************************************/
+ 319:.\Generated_Source\PSoC4/CyFlash.c **** cystatus CySysFlashWriteRow(uint32 rowNum, const uint8 rowData[])
+ 320:.\Generated_Source\PSoC4/CyFlash.c **** {
+  84              		.loc 1 320 0
+  85              		.cfi_startproc
+  86              	.LVL4:
+  87 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  88              	.LCFI1:
+  89              		.cfi_def_cfa_offset 20
+  90              		.cfi_offset 4, -20
+  91              		.cfi_offset 5, -16
+  92              		.cfi_offset 6, -12
+  93              		.cfi_offset 7, -8
+  94              		.cfi_offset 14, -4
+  95 0002 071C     		mov	r7, r0
+  96 0004 ABB0     		sub	sp, sp, #172
+  97              	.LCFI2:
+  98              		.cfi_def_cfa_offset 192
+ 321:.\Generated_Source\PSoC4/CyFlash.c ****     cystatus retValue = CYRET_SUCCESS;
+ 322:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 statusCode;
+ 323:.\Generated_Source\PSoC4/CyFlash.c ****     uint8 interruptState;
+ 324:.\Generated_Source\PSoC4/CyFlash.c ****     struct CySysFlashClockState savedClkCfg;
+ 325:.\Generated_Source\PSoC4/CyFlash.c ****     volatile struct
+ 326:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 327:.\Generated_Source\PSoC4/CyFlash.c ****         uint8 key1;
+ 328:.\Generated_Source\PSoC4/CyFlash.c ****         uint8 key2;
+ 329:.\Generated_Source\PSoC4/CyFlash.c ****         uint8 byteAddr;
+ 330:.\Generated_Source\PSoC4/CyFlash.c ****         uint8 flashMacro;
+ 331:.\Generated_Source\PSoC4/CyFlash.c ****         uint32 numBytesMinusOne;
+ 332:.\Generated_Source\PSoC4/CyFlash.c ****         uint32 data[CY_FLASH_SIZEOF_ROW / sizeof(uint32)];
+ 333:.\Generated_Source\PSoC4/CyFlash.c ****     } loadBuf;
+ 334:.\Generated_Source\PSoC4/CyFlash.c **** #ifdef CYFLASH_CHECKSUM_WORKAROUND
+ 335:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 needChecksumWorkaround = 0u;
+ 336:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 savedIndex = 0u;
+ 337:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 savedValue = 0u;
+ 338:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 checksum = 0u;
+ 339:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 bits = 0u;
+ 340:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 i;
+ 341:.\Generated_Source\PSoC4/CyFlash.c **** #endif  /* CYFLASH_CHECKSUM_WORKAROUND */
+ 342:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 343:.\Generated_Source\PSoC4/CyFlash.c ****     if ((rowNum < CY_FLASH_NUMBER_ROWS) && (rowData != 0u))
+ 344:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 345:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 346:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.key1 = (uint8)CY_FLASH_SROM_KEY1;
+ 347:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.key2 = (uint8)CY_FLASH_SROM_KEY2_LOAD;
+ 348:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.byteAddr = (uint8)0u;
+ 349:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 350:.\Generated_Source\PSoC4/CyFlash.c ****     #if(CY_FLASH_NUMBER_ROWS > 255u)
+ 351:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.flashMacro = (uint8)(rowNum >> 8);
+ 352:.\Generated_Source\PSoC4/CyFlash.c ****     #else
+ 353:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.flashMacro = (uint8)0u;
+ 354:.\Generated_Source\PSoC4/CyFlash.c ****     #endif  /* (CY_FLASH_NUMBER_ROWS > 255u) */
+ 355:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 356:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.numBytesMinusOne = (CY_FLASH_SIZEOF_ROW - 1u);
+ 357:.\Generated_Source\PSoC4/CyFlash.c ****         (void)memcpy((void *)loadBuf.data, rowData, CY_FLASH_SIZEOF_ROW);
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 9
+
+
+ 358:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 359:.\Generated_Source\PSoC4/CyFlash.c ****     #ifdef CYFLASH_CHECKSUM_WORKAROUND
+ 360:.\Generated_Source\PSoC4/CyFlash.c ****         for (i = 0u; i < (CY_FLASH_SIZEOF_ROW / sizeof(uint32)); i++)
+ 361:.\Generated_Source\PSoC4/CyFlash.c ****         {
+ 362:.\Generated_Source\PSoC4/CyFlash.c ****             uint32 w = loadBuf.data[i];
+ 363:.\Generated_Source\PSoC4/CyFlash.c ****             if (w != 0u)
+ 364:.\Generated_Source\PSoC4/CyFlash.c ****             {
+ 365:.\Generated_Source\PSoC4/CyFlash.c ****                 checksum += w;
+ 366:.\Generated_Source\PSoC4/CyFlash.c ****                 bits |= w;
+ 367:.\Generated_Source\PSoC4/CyFlash.c ****                 savedIndex = i;
+ 368:.\Generated_Source\PSoC4/CyFlash.c ****             }
+ 369:.\Generated_Source\PSoC4/CyFlash.c ****         }
+ 370:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 371:.\Generated_Source\PSoC4/CyFlash.c ****         needChecksumWorkaround = ((checksum == 0u) && (bits != 0u)) ? 1u : 0u;
+ 372:.\Generated_Source\PSoC4/CyFlash.c ****         if (needChecksumWorkaround != 0u)
+ 373:.\Generated_Source\PSoC4/CyFlash.c ****         {
+ 374:.\Generated_Source\PSoC4/CyFlash.c ****             savedValue = loadBuf.data[savedIndex];
+ 375:.\Generated_Source\PSoC4/CyFlash.c ****             loadBuf.data[savedIndex] = 0u;
+ 376:.\Generated_Source\PSoC4/CyFlash.c ****         }
+ 377:.\Generated_Source\PSoC4/CyFlash.c ****     #endif  /* CYFLASH_CHECKSUM_WORKAROUND */
+ 378:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 379:.\Generated_Source\PSoC4/CyFlash.c ****         /* First load data. Then invoke Write row command. */
+ 380:.\Generated_Source\PSoC4/CyFlash.c ****         (void)CySysFlashExecSysCall(CY_FLASH_LOAD_BYTE_OPCODE, &loadBuf);
+ 381:.\Generated_Source\PSoC4/CyFlash.c ****         retValue = CySysFlashHandleLoadResult();
+ 382:.\Generated_Source\PSoC4/CyFlash.c ****         if(retValue == CYRET_SUCCESS)
+ 383:.\Generated_Source\PSoC4/CyFlash.c ****         {
+ 384:.\Generated_Source\PSoC4/CyFlash.c ****             /* Mask all exceptions to guarantee that IMO configuration will be changed
+ 385:.\Generated_Source\PSoC4/CyFlash.c ****             * in the atomic way. It will not affect the syscall execution (flash row write)
+ 386:.\Generated_Source\PSoC4/CyFlash.c ****             * since it is executed in the NMI context.
+ 387:.\Generated_Source\PSoC4/CyFlash.c ****             */
+ 388:.\Generated_Source\PSoC4/CyFlash.c ****             interruptState = CyEnterCriticalSection();
+ 389:.\Generated_Source\PSoC4/CyFlash.c ****             CySysFlashSetupClock(&savedClkCfg);
+ 390:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 391:.\Generated_Source\PSoC4/CyFlash.c ****             statusCode = CySysFlashCallProgramRow(rowNum, CY_FLASH_WRITE_ROW_OPCODE);
+ 392:.\Generated_Source\PSoC4/CyFlash.c ****             if (statusCode != CY_FLASH_SROM_CMD_RETURN_SUCC)
+ 393:.\Generated_Source\PSoC4/CyFlash.c ****             {
+ 394:.\Generated_Source\PSoC4/CyFlash.c ****                 retValue = statusCode;
+ 395:.\Generated_Source\PSoC4/CyFlash.c ****             }
+ 396:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 397:.\Generated_Source\PSoC4/CyFlash.c ****         #ifdef CYFLASH_CHECKSUM_WORKAROUND
+ 398:.\Generated_Source\PSoC4/CyFlash.c ****             if ((retValue == CYRET_SUCCESS) && (needChecksumWorkaround != 0u))
+ 399:.\Generated_Source\PSoC4/CyFlash.c ****             {
+ 400:.\Generated_Source\PSoC4/CyFlash.c ****                 (void)memset((void *)loadBuf.data, 0, CY_FLASH_SIZEOF_ROW);
+ 401:.\Generated_Source\PSoC4/CyFlash.c ****                 loadBuf.data[savedIndex] = savedValue;
+ 402:.\Generated_Source\PSoC4/CyFlash.c ****                 (void)CySysFlashExecSysCall(CY_FLASH_LOAD_BYTE_OPCODE, &loadBuf);
+ 403:.\Generated_Source\PSoC4/CyFlash.c ****                 retValue = CySysFlashHandleLoadResult();
+ 404:.\Generated_Source\PSoC4/CyFlash.c ****                 if (retValue == CYRET_SUCCESS)
+ 405:.\Generated_Source\PSoC4/CyFlash.c ****                 {
+ 406:.\Generated_Source\PSoC4/CyFlash.c ****                     statusCode = CySysFlashCallProgramRow(rowNum, CY_FLASH_PROGRAM_ROW_OPCODE);
+ 407:.\Generated_Source\PSoC4/CyFlash.c ****                     if (statusCode != CY_FLASH_SROM_CMD_RETURN_SUCC)
+ 408:.\Generated_Source\PSoC4/CyFlash.c ****                     {
+ 409:.\Generated_Source\PSoC4/CyFlash.c ****                         retValue = statusCode;
+ 410:.\Generated_Source\PSoC4/CyFlash.c ****                     }
+ 411:.\Generated_Source\PSoC4/CyFlash.c ****                 }
+ 412:.\Generated_Source\PSoC4/CyFlash.c ****             }
+ 413:.\Generated_Source\PSoC4/CyFlash.c ****         #endif  /* CYFLASH_CHECKSUM_WORKAROUND */
+ 414:.\Generated_Source\PSoC4/CyFlash.c **** 
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 10
+
+
+ 415:.\Generated_Source\PSoC4/CyFlash.c ****             CySysFlashRestoreClock(&savedClkCfg);
+ 416:.\Generated_Source\PSoC4/CyFlash.c ****             CyExitCriticalSection(interruptState);
+ 417:.\Generated_Source\PSoC4/CyFlash.c ****         }
+ 418:.\Generated_Source\PSoC4/CyFlash.c ****     }
+ 419:.\Generated_Source\PSoC4/CyFlash.c ****     else
+ 420:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 421:.\Generated_Source\PSoC4/CyFlash.c ****         retValue = CYRET_BAD_PARAM;
+  99              		.loc 1 421 0
+ 100 0006 0124     		mov	r4, #1
+ 343:.\Generated_Source\PSoC4/CyFlash.c ****     if ((rowNum < CY_FLASH_NUMBER_ROWS) && (rowData != 0u))
+ 101              		.loc 1 343 0
+ 102 0008 FF28     		cmp	r0, #255
+ 103 000a 00D9     		bls	.LCB89
+ 104 000c 95E0     		b	.L31	@long jump
+ 105              	.LCB89:
+ 343:.\Generated_Source\PSoC4/CyFlash.c ****     if ((rowNum < CY_FLASH_NUMBER_ROWS) && (rowData != 0u))
+ 106              		.loc 1 343 0 is_stmt 0 discriminator 1
+ 107 000e 0029     		cmp	r1, #0
+ 108 0010 00D1     		bne	.LCB91
+ 109 0012 92E0     		b	.L31	@long jump
+ 110              	.LCB91:
+ 348:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.byteAddr = (uint8)0u;
+ 111              		.loc 1 348 0 is_stmt 1
+ 112 0014 0025     		mov	r5, #0
+ 346:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.key1 = (uint8)CY_FLASH_SROM_KEY1;
+ 113              		.loc 1 346 0
+ 114 0016 08AC     		add	r4, sp, #32
+ 115 0018 B623     		mov	r3, #182
+ 347:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.key2 = (uint8)CY_FLASH_SROM_KEY2_LOAD;
+ 116              		.loc 1 347 0
+ 117 001a D720     		mov	r0, #215
+ 118              	.LVL5:
+ 356:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.numBytesMinusOne = (CY_FLASH_SIZEOF_ROW - 1u);
+ 119              		.loc 1 356 0
+ 120 001c 7F22     		mov	r2, #127
+ 346:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.key1 = (uint8)CY_FLASH_SROM_KEY1;
+ 121              		.loc 1 346 0
+ 122 001e 2370     		strb	r3, [r4]
+ 347:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.key2 = (uint8)CY_FLASH_SROM_KEY2_LOAD;
+ 123              		.loc 1 347 0
+ 124 0020 6070     		strb	r0, [r4, #1]
+ 348:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.byteAddr = (uint8)0u;
+ 125              		.loc 1 348 0
+ 126 0022 A570     		strb	r5, [r4, #2]
+ 357:.\Generated_Source\PSoC4/CyFlash.c ****         (void)memcpy((void *)loadBuf.data, rowData, CY_FLASH_SIZEOF_ROW);
+ 127              		.loc 1 357 0
+ 128 0024 0AA8     		add	r0, sp, #40
+ 351:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.flashMacro = (uint8)(rowNum >> 8);
+ 129              		.loc 1 351 0
+ 130 0026 E570     		strb	r5, [r4, #3]
+ 356:.\Generated_Source\PSoC4/CyFlash.c ****         loadBuf.numBytesMinusOne = (CY_FLASH_SIZEOF_ROW - 1u);
+ 131              		.loc 1 356 0
+ 132 0028 6260     		str	r2, [r4, #4]
+ 357:.\Generated_Source\PSoC4/CyFlash.c ****         (void)memcpy((void *)loadBuf.data, rowData, CY_FLASH_SIZEOF_ROW);
+ 133              		.loc 1 357 0
+ 134 002a 8022     		mov	r2, #128
+ 135 002c FFF7FEFF 		bl	memcpy
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 11
+
+
+ 136              	.LVL6:
+ 360:.\Generated_Source\PSoC4/CyFlash.c ****         for (i = 0u; i < (CY_FLASH_SIZEOF_ROW / sizeof(uint32)); i++)
+ 137              		.loc 1 360 0
+ 138 0030 2E1C     		mov	r6, r5
+ 339:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 bits = 0u;
+ 139              		.loc 1 339 0
+ 140 0032 291C     		mov	r1, r5
+ 338:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 checksum = 0u;
+ 141              		.loc 1 338 0
+ 142 0034 2A1C     		mov	r2, r5
+ 336:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 savedIndex = 0u;
+ 143              		.loc 1 336 0
+ 144 0036 0195     		str	r5, [sp, #4]
+ 145              	.LVL7:
+ 146              	.L15:
+ 147              	.LBB24:
+ 362:.\Generated_Source\PSoC4/CyFlash.c ****             uint32 w = loadBuf.data[i];
+ 148              		.loc 1 362 0
+ 149 0038 B31C     		add	r3, r6, #2
+ 150 003a 9800     		lsl	r0, r3, #2
+ 151 003c 2558     		ldr	r5, [r4, r0]
+ 152              	.LVL8:
+ 363:.\Generated_Source\PSoC4/CyFlash.c ****             if (w != 0u)
+ 153              		.loc 1 363 0
+ 154 003e 002D     		cmp	r5, #0
+ 155 0040 02D0     		beq	.L14
+ 365:.\Generated_Source\PSoC4/CyFlash.c ****                 checksum += w;
+ 156              		.loc 1 365 0
+ 157 0042 5219     		add	r2, r2, r5
+ 158              	.LVL9:
+ 366:.\Generated_Source\PSoC4/CyFlash.c ****                 bits |= w;
+ 159              		.loc 1 366 0
+ 160 0044 2943     		orr	r1, r5
+ 161              	.LVL10:
+ 162 0046 0196     		str	r6, [sp, #4]
+ 163              	.LVL11:
+ 164              	.L14:
+ 165              	.LBE24:
+ 360:.\Generated_Source\PSoC4/CyFlash.c ****         for (i = 0u; i < (CY_FLASH_SIZEOF_ROW / sizeof(uint32)); i++)
+ 166              		.loc 1 360 0
+ 167 0048 0136     		add	r6, r6, #1
+ 168              	.LVL12:
+ 169 004a 202E     		cmp	r6, #32
+ 170 004c F4D1     		bne	.L15
+ 371:.\Generated_Source\PSoC4/CyFlash.c ****         needChecksumWorkaround = ((checksum == 0u) && (bits != 0u)) ? 1u : 0u;
+ 171              		.loc 1 371 0
+ 172 004e 002A     		cmp	r2, #0
+ 173 0050 02D1     		bne	.L26
+ 371:.\Generated_Source\PSoC4/CyFlash.c ****         needChecksumWorkaround = ((checksum == 0u) && (bits != 0u)) ? 1u : 0u;
+ 174              		.loc 1 371 0 is_stmt 0 discriminator 1
+ 175 0052 0029     		cmp	r1, #0
+ 176 0054 68D1     		bne	.L17
+ 177 0056 00E0     		b	.L41
+ 178              	.L26:
+ 371:.\Generated_Source\PSoC4/CyFlash.c ****         needChecksumWorkaround = ((checksum == 0u) && (bits != 0u)) ? 1u : 0u;
+ 179              		.loc 1 371 0
+ 180 0058 0021     		mov	r1, #0
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 12
+
+
+ 181              	.LVL13:
+ 182              	.L41:
+ 183 005a 0091     		str	r1, [sp]
+ 337:.\Generated_Source\PSoC4/CyFlash.c ****     uint32 savedValue = 0u;
+ 184              		.loc 1 337 0 is_stmt 1
+ 185 005c 0291     		str	r1, [sp, #8]
+ 186              	.LVL14:
+ 187              	.L16:
+ 188              	.LBB25:
+ 189              	.LBB26:
+ 214:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSARG_REG = (uint32)arg;
+ 190              		.loc 1 214 0
+ 191 005e 384D     		ldr	r5, .L42
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 192              		.loc 1 215 0
+ 193 0060 384E     		ldr	r6, .L42+4
+ 214:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSARG_REG = (uint32)arg;
+ 194              		.loc 1 214 0
+ 195 0062 2C60     		str	r4, [r5]
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 196              		.loc 1 215 0
+ 197 0064 384C     		ldr	r4, .L42+8
+ 198              	.LVL15:
+ 199 0066 3460     		str	r4, [r6]
+ 200              	.LVL16:
+ 201              	.L18:
+ 216:.\Generated_Source\PSoC4/CyFlash.c ****     while ((CY_FLASH_CPUSS_SYSREQ_REG & CY_FLASH_CPUSS_REQ_START) != 0u)
+ 202              		.loc 1 216 0
+ 203 0068 3268     		ldr	r2, [r6]
+ 204 006a 002A     		cmp	r2, #0
+ 205 006c FCDB     		blt	.L18
+ 220:.\Generated_Source\PSoC4/CyFlash.c ****     return CY_FLASH_CPUSS_SYSARG_REG;
+ 206              		.loc 1 220 0
+ 207 006e 2B68     		ldr	r3, [r5]
+ 208              	.LBE26:
+ 209              	.LBE25:
+ 381:.\Generated_Source\PSoC4/CyFlash.c ****         retValue = CySysFlashHandleLoadResult();
+ 210              		.loc 1 381 0
+ 211 0070 FFF7FEFF 		bl	CySysFlashHandleLoadResult
+ 212              	.LVL17:
+ 213 0074 041E     		sub	r4, r0, #0
+ 214              	.LVL18:
+ 382:.\Generated_Source\PSoC4/CyFlash.c ****         if(retValue == CYRET_SUCCESS)
+ 215              		.loc 1 382 0
+ 216 0076 60D1     		bne	.L31
+ 388:.\Generated_Source\PSoC4/CyFlash.c ****             interruptState = CyEnterCriticalSection();
+ 217              		.loc 1 388 0
+ 218 0078 FFF7FEFF 		bl	CyEnterCriticalSection
+ 219              	.LVL19:
+ 220              	.LBB27:
+ 221              	.LBB28:
+  80:.\Generated_Source\PSoC4/CyFlash.c ****         saved->imoConfigReg = CY_SYS_CLK_IMO_CONFIG_REG;
+ 222              		.loc 1 80 0
+ 223 007c 334B     		ldr	r3, .L42+12
+ 224              	.LBE28:
+ 225              	.LBE27:
+ 388:.\Generated_Source\PSoC4/CyFlash.c ****             interruptState = CyEnterCriticalSection();
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 13
+
+
+ 226              		.loc 1 388 0
+ 227 007e 0590     		str	r0, [sp, #20]
+ 228              	.LVL20:
+ 229              	.LBB31:
+ 230              	.LBB29:
+  80:.\Generated_Source\PSoC4/CyFlash.c ****         saved->imoConfigReg = CY_SYS_CLK_IMO_CONFIG_REG;
+ 231              		.loc 1 80 0
+ 232 0080 1968     		ldr	r1, [r3]
+ 233              	.LBE29:
+ 234              	.LBE31:
+ 235              	.LBB32:
+ 236              	.LBB33:
+ 254:.\Generated_Source\PSoC4/CyFlash.c ****     args.key1 = (uint8)CY_FLASH_SROM_KEY1;
+ 237              		.loc 1 254 0
+ 238 0082 B620     		mov	r0, #182
+ 239              	.LBE33:
+ 240              	.LBE32:
+ 241              	.LBB39:
+ 242              	.LBB30:
+  80:.\Generated_Source\PSoC4/CyFlash.c ****         saved->imoConfigReg = CY_SYS_CLK_IMO_CONFIG_REG;
+ 243              		.loc 1 80 0
+ 244 0084 0491     		str	r1, [sp, #16]
+ 245              	.LVL21:
+ 246              	.LBE30:
+ 247              	.LBE39:
+ 248              	.LBB40:
+ 249              	.LBB38:
+ 255:.\Generated_Source\PSoC4/CyFlash.c ****     args.key2 = (uint8)(CY_FLASH_SROM_KEY2 + operation);
+ 250              		.loc 1 255 0
+ 251 0086 D822     		mov	r2, #216
+ 254:.\Generated_Source\PSoC4/CyFlash.c ****     args.key1 = (uint8)CY_FLASH_SROM_KEY1;
+ 252              		.loc 1 254 0
+ 253 0088 6946     		mov	r1, sp
+ 254              	.LVL22:
+ 256:.\Generated_Source\PSoC4/CyFlash.c ****     args.row = (uint16) rowNum;
+ 255              		.loc 1 256 0
+ 256 008a BFB2     		uxth	r7, r7
+ 257              	.LVL23:
+ 254:.\Generated_Source\PSoC4/CyFlash.c ****     args.key1 = (uint8)CY_FLASH_SROM_KEY1;
+ 258              		.loc 1 254 0
+ 259 008c 0876     		strb	r0, [r1, #24]
+ 256:.\Generated_Source\PSoC4/CyFlash.c ****     args.row = (uint16) rowNum;
+ 260              		.loc 1 256 0
+ 261 008e 0397     		str	r7, [sp, #12]
+ 255:.\Generated_Source\PSoC4/CyFlash.c ****     args.key2 = (uint8)(CY_FLASH_SROM_KEY2 + operation);
+ 262              		.loc 1 255 0
+ 263 0090 4A76     		strb	r2, [r1, #25]
+ 256:.\Generated_Source\PSoC4/CyFlash.c ****     args.row = (uint16) rowNum;
+ 264              		.loc 1 256 0
+ 265 0092 6846     		mov	r0, sp
+ 266 0094 0C21     		mov	r1, #12
+ 267 0096 0A5A     		ldrh	r2, [r1, r0]
+ 268              	.LBB34:
+ 269              	.LBB35:
+ 214:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSARG_REG = (uint32)arg;
+ 270              		.loc 1 214 0
+ 271 0098 294F     		ldr	r7, .L42
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 14
+
+
+ 272              	.LBE35:
+ 273              	.LBE34:
+ 256:.\Generated_Source\PSoC4/CyFlash.c ****     args.row = (uint16) rowNum;
+ 274              		.loc 1 256 0
+ 275 009a 4283     		strh	r2, [r0, #26]
+ 276              	.LVL24:
+ 277              	.LBB37:
+ 278              	.LBB36:
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 279              		.loc 1 215 0
+ 280 009c 2C49     		ldr	r1, .L42+16
+ 281 009e 294A     		ldr	r2, .L42+4
+ 214:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSARG_REG = (uint32)arg;
+ 282              		.loc 1 214 0
+ 283 00a0 06A8     		add	r0, sp, #24
+ 284              	.LVL25:
+ 285 00a2 3860     		str	r0, [r7]
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 286              		.loc 1 215 0
+ 287 00a4 1160     		str	r1, [r2]
+ 288 00a6 1F1C     		mov	r7, r3
+ 289              	.L19:
+ 216:.\Generated_Source\PSoC4/CyFlash.c ****     while ((CY_FLASH_CPUSS_SYSREQ_REG & CY_FLASH_CPUSS_REQ_START) != 0u)
+ 290              		.loc 1 216 0
+ 291 00a8 3368     		ldr	r3, [r6]
+ 292 00aa 002B     		cmp	r3, #0
+ 293 00ac FCDB     		blt	.L19
+ 220:.\Generated_Source\PSoC4/CyFlash.c ****     return CY_FLASH_CPUSS_SYSARG_REG;
+ 294              		.loc 1 220 0
+ 295 00ae 2B68     		ldr	r3, [r5]
+ 296              	.LBE36:
+ 297              	.LBE37:
+ 298              	.LBE38:
+ 299              	.LBE40:
+ 392:.\Generated_Source\PSoC4/CyFlash.c ****             if (statusCode != CY_FLASH_SROM_CMD_RETURN_SUCC)
+ 300              		.loc 1 392 0
+ 301 00b0 A020     		mov	r0, #160
+ 302              	.LVL26:
+ 303 00b2 0106     		lsl	r1, r0, #24
+ 304 00b4 8B42     		cmp	r3, r1
+ 305 00b6 01D0     		beq	.L20
+ 306              	.LVL27:
+ 398:.\Generated_Source\PSoC4/CyFlash.c ****             if ((retValue == CYRET_SUCCESS) && (needChecksumWorkaround != 0u))
+ 307              		.loc 1 398 0
+ 308 00b8 002B     		cmp	r3, #0
+ 309 00ba 2ED1     		bne	.L28
+ 310              	.LVL28:
+ 311              	.L20:
+ 398:.\Generated_Source\PSoC4/CyFlash.c ****             if ((retValue == CYRET_SUCCESS) && (needChecksumWorkaround != 0u))
+ 312              		.loc 1 398 0 is_stmt 0 discriminator 1
+ 313 00bc 009A     		ldr	r2, [sp]
+ 314 00be 002A     		cmp	r2, #0
+ 315 00c0 2CD0     		beq	.L21
+ 400:.\Generated_Source\PSoC4/CyFlash.c ****                 (void)memset((void *)loadBuf.data, 0, CY_FLASH_SIZEOF_ROW);
+ 316              		.loc 1 400 0 is_stmt 1
+ 317 00c2 0021     		mov	r1, #0
+ 318 00c4 8022     		mov	r2, #128
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 15
+
+
+ 319 00c6 0AA8     		add	r0, sp, #40
+ 320 00c8 FFF7FEFF 		bl	memset
+ 321              	.LVL29:
+ 401:.\Generated_Source\PSoC4/CyFlash.c ****                 loadBuf.data[savedIndex] = savedValue;
+ 322              		.loc 1 401 0
+ 323 00cc 019B     		ldr	r3, [sp, #4]
+ 324 00ce 0299     		ldr	r1, [sp, #8]
+ 325 00d0 0233     		add	r3, r3, #2
+ 326              	.LBB41:
+ 327              	.LBB42:
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 328              		.loc 1 215 0
+ 329 00d2 1D4A     		ldr	r2, .L42+8
+ 330              	.LBE42:
+ 331              	.LBE41:
+ 400:.\Generated_Source\PSoC4/CyFlash.c ****                 (void)memset((void *)loadBuf.data, 0, CY_FLASH_SIZEOF_ROW);
+ 332              		.loc 1 400 0
+ 333 00d4 08AC     		add	r4, sp, #32
+ 401:.\Generated_Source\PSoC4/CyFlash.c ****                 loadBuf.data[savedIndex] = savedValue;
+ 334              		.loc 1 401 0
+ 335 00d6 9800     		lsl	r0, r3, #2
+ 336 00d8 0151     		str	r1, [r0, r4]
+ 337              	.LVL30:
+ 338              	.LBB44:
+ 339              	.LBB43:
+ 214:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSARG_REG = (uint32)arg;
+ 340              		.loc 1 214 0
+ 341 00da 2C60     		str	r4, [r5]
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 342              		.loc 1 215 0
+ 343 00dc 3260     		str	r2, [r6]
+ 344              	.LVL31:
+ 345              	.L22:
+ 216:.\Generated_Source\PSoC4/CyFlash.c ****     while ((CY_FLASH_CPUSS_SYSREQ_REG & CY_FLASH_CPUSS_REQ_START) != 0u)
+ 346              		.loc 1 216 0
+ 347 00de 3468     		ldr	r4, [r6]
+ 348 00e0 002C     		cmp	r4, #0
+ 349 00e2 FCDB     		blt	.L22
+ 220:.\Generated_Source\PSoC4/CyFlash.c ****     return CY_FLASH_CPUSS_SYSARG_REG;
+ 350              		.loc 1 220 0
+ 351 00e4 2B68     		ldr	r3, [r5]
+ 352              	.LBE43:
+ 353              	.LBE44:
+ 403:.\Generated_Source\PSoC4/CyFlash.c ****                 retValue = CySysFlashHandleLoadResult();
+ 354              		.loc 1 403 0
+ 355 00e6 FFF7FEFF 		bl	CySysFlashHandleLoadResult
+ 356              	.LVL32:
+ 357 00ea 041E     		sub	r4, r0, #0
+ 358              	.LVL33:
+ 404:.\Generated_Source\PSoC4/CyFlash.c ****                 if (retValue == CYRET_SUCCESS)
+ 359              		.loc 1 404 0
+ 360 00ec 16D1     		bne	.L21
+ 361              	.LVL34:
+ 362              	.LBB45:
+ 363              	.LBB46:
+ 254:.\Generated_Source\PSoC4/CyFlash.c ****     args.key1 = (uint8)CY_FLASH_SROM_KEY1;
+ 364              		.loc 1 254 0
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 16
+
+
+ 365 00ee 07AB     		add	r3, sp, #28
+ 366 00f0 B620     		mov	r0, #182
+ 367              	.LVL35:
+ 368 00f2 1870     		strb	r0, [r3]
+ 255:.\Generated_Source\PSoC4/CyFlash.c ****     args.key2 = (uint8)(CY_FLASH_SROM_KEY2 + operation);
+ 369              		.loc 1 255 0
+ 370 00f4 D921     		mov	r1, #217
+ 256:.\Generated_Source\PSoC4/CyFlash.c ****     args.row = (uint16) rowNum;
+ 371              		.loc 1 256 0
+ 372 00f6 6846     		mov	r0, sp
+ 373 00f8 0C22     		mov	r2, #12
+ 255:.\Generated_Source\PSoC4/CyFlash.c ****     args.key2 = (uint8)(CY_FLASH_SROM_KEY2 + operation);
+ 374              		.loc 1 255 0
+ 375 00fa 5970     		strb	r1, [r3, #1]
+ 256:.\Generated_Source\PSoC4/CyFlash.c ****     args.row = (uint16) rowNum;
+ 376              		.loc 1 256 0
+ 377 00fc 115A     		ldrh	r1, [r2, r0]
+ 378              	.LBB47:
+ 379              	.LBB48:
+ 214:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSARG_REG = (uint32)arg;
+ 380              		.loc 1 214 0
+ 381 00fe 1048     		ldr	r0, .L42
+ 382              	.LBE48:
+ 383              	.LBE47:
+ 256:.\Generated_Source\PSoC4/CyFlash.c ****     args.row = (uint16) rowNum;
+ 384              		.loc 1 256 0
+ 385 0100 5980     		strh	r1, [r3, #2]
+ 386              	.LVL36:
+ 387              	.LBB50:
+ 388              	.LBB49:
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 389              		.loc 1 215 0
+ 390 0102 144A     		ldr	r2, .L42+20
+ 214:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSARG_REG = (uint32)arg;
+ 391              		.loc 1 214 0
+ 392 0104 0360     		str	r3, [r0]
+ 215:.\Generated_Source\PSoC4/CyFlash.c ****     CY_FLASH_CPUSS_SYSREQ_REG = cmd | CY_FLASH_CPUSS_REQ_START;
+ 393              		.loc 1 215 0
+ 394 0106 0F4B     		ldr	r3, .L42+4
+ 395              	.LVL37:
+ 396 0108 1A60     		str	r2, [r3]
+ 397              	.L23:
+ 216:.\Generated_Source\PSoC4/CyFlash.c ****     while ((CY_FLASH_CPUSS_SYSREQ_REG & CY_FLASH_CPUSS_REQ_START) != 0u)
+ 398              		.loc 1 216 0
+ 399 010a 3168     		ldr	r1, [r6]
+ 400 010c 0029     		cmp	r1, #0
+ 401 010e FCDB     		blt	.L23
+ 220:.\Generated_Source\PSoC4/CyFlash.c ****     return CY_FLASH_CPUSS_SYSARG_REG;
+ 402              		.loc 1 220 0
+ 403 0110 2B68     		ldr	r3, [r5]
+ 404              	.LBE49:
+ 405              	.LBE50:
+ 406              	.LBE46:
+ 407              	.LBE45:
+ 407:.\Generated_Source\PSoC4/CyFlash.c ****                     if (statusCode != CY_FLASH_SROM_CMD_RETURN_SUCC)
+ 408              		.loc 1 407 0
+ 409 0112 A025     		mov	r5, #160
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 17
+
+
+ 410              	.LVL38:
+ 411 0114 2E06     		lsl	r6, r5, #24
+ 412 0116 B342     		cmp	r3, r6
+ 413 0118 00D0     		beq	.L21
+ 414              	.LVL39:
+ 415              	.L28:
+ 416 011a 1C1C     		mov	r4, r3
+ 417              	.L21:
+ 418              	.LVL40:
+ 419              	.LBB51:
+ 420              	.LBB52:
+ 101:.\Generated_Source\PSoC4/CyFlash.c ****         CY_SYS_CLK_IMO_CONFIG_REG = saved->imoConfigReg;
+ 421              		.loc 1 101 0
+ 422 011c 0498     		ldr	r0, [sp, #16]
+ 423 011e 3860     		str	r0, [r7]
+ 424              	.LBE52:
+ 425              	.LBE51:
+ 416:.\Generated_Source\PSoC4/CyFlash.c ****             CyExitCriticalSection(interruptState);
+ 426              		.loc 1 416 0
+ 427 0120 0598     		ldr	r0, [sp, #20]
+ 428 0122 FFF7FEFF 		bl	CyExitCriticalSection
+ 429              	.LVL41:
+ 430 0126 08E0     		b	.L31
+ 431              	.LVL42:
+ 432              	.L17:
+ 374:.\Generated_Source\PSoC4/CyFlash.c ****             savedValue = loadBuf.data[savedIndex];
+ 433              		.loc 1 374 0
+ 434 0128 019E     		ldr	r6, [sp, #4]
+ 435              	.LVL43:
+ 371:.\Generated_Source\PSoC4/CyFlash.c ****         needChecksumWorkaround = ((checksum == 0u) && (bits != 0u)) ? 1u : 0u;
+ 436              		.loc 1 371 0
+ 437 012a 0125     		mov	r5, #1
+ 438              	.LVL44:
+ 374:.\Generated_Source\PSoC4/CyFlash.c ****             savedValue = loadBuf.data[savedIndex];
+ 439              		.loc 1 374 0
+ 440 012c 0236     		add	r6, r6, #2
+ 441 012e B300     		lsl	r3, r6, #2
+ 442              	.LVL45:
+ 443 0130 E058     		ldr	r0, [r4, r3]
+ 371:.\Generated_Source\PSoC4/CyFlash.c ****         needChecksumWorkaround = ((checksum == 0u) && (bits != 0u)) ? 1u : 0u;
+ 444              		.loc 1 371 0
+ 445 0132 0095     		str	r5, [sp]
+ 374:.\Generated_Source\PSoC4/CyFlash.c ****             savedValue = loadBuf.data[savedIndex];
+ 446              		.loc 1 374 0
+ 447 0134 0290     		str	r0, [sp, #8]
+ 448              	.LVL46:
+ 375:.\Generated_Source\PSoC4/CyFlash.c ****             loadBuf.data[savedIndex] = 0u;
+ 449              		.loc 1 375 0
+ 450 0136 E250     		str	r2, [r4, r3]
+ 451 0138 91E7     		b	.L16
+ 452              	.LVL47:
+ 453              	.L31:
+ 422:.\Generated_Source\PSoC4/CyFlash.c ****     }
+ 423:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 424:.\Generated_Source\PSoC4/CyFlash.c ****     return (retValue);
+ 425:.\Generated_Source\PSoC4/CyFlash.c **** }
+ 454              		.loc 1 425 0
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 18
+
+
+ 455 013a 201C     		mov	r0, r4
+ 456 013c 2BB0     		add	sp, sp, #172
+ 457              		@ sp needed for prologue
+ 458 013e F0BD     		pop	{r4, r5, r6, r7, pc}
+ 459              	.L43:
+ 460              		.align	2
+ 461              	.L42:
+ 462 0140 08000040 		.word	1073741832
+ 463 0144 04000040 		.word	1073741828
+ 464 0148 04000080 		.word	-2147483644
+ 465 014c 08010B40 		.word	1074462984
+ 466 0150 05000080 		.word	-2147483643
+ 467 0154 06000080 		.word	-2147483642
+ 468              		.cfi_endproc
+ 469              	.LFE5:
+ 470              		.size	CySysFlashWriteRow, .-CySysFlashWriteRow
+ 471              		.section	.text.CySysFlashSetWaitCycles,"ax",%progbits
+ 472              		.align	1
+ 473              		.global	CySysFlashSetWaitCycles
+ 474              		.code	16
+ 475              		.thumb_func
+ 476              		.type	CySysFlashSetWaitCycles, %function
+ 477              	CySysFlashSetWaitCycles:
+ 478              	.LFB6:
+ 426:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 427:.\Generated_Source\PSoC4/CyFlash.c **** #if(CY_PSOC4A)
+ 428:.\Generated_Source\PSoC4/CyFlash.c **** 
+ 429:.\Generated_Source\PSoC4/CyFlash.c ****     /*******************************************************************************
+ 430:.\Generated_Source\PSoC4/CyFlash.c ****     * Function Name: CySysFlashSetWaitCycles
+ 431:.\Generated_Source\PSoC4/CyFlash.c ****     ********************************************************************************
+ 432:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 433:.\Generated_Source\PSoC4/CyFlash.c ****     * Summary:
+ 434:.\Generated_Source\PSoC4/CyFlash.c ****     *  Sets the number of clock cycles the cache will wait before it samples data
+ 435:.\Generated_Source\PSoC4/CyFlash.c ****     *  coming back from Flash. This function must be called before increasing the
+ 436:.\Generated_Source\PSoC4/CyFlash.c ****     *  SYSCLK clock frequency. It can optionally be called after lowering SYSCLK
+ 437:.\Generated_Source\PSoC4/CyFlash.c ****     *  clock frequency in order to improve the CPU performance.
+ 438:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 439:.\Generated_Source\PSoC4/CyFlash.c ****     * Parameters:
+ 440:.\Generated_Source\PSoC4/CyFlash.c ****     *  freq: Valid range [3-48].  Frequency for operation of the IMO.
+ 441:.\Generated_Source\PSoC4/CyFlash.c ****     *  Note: Invalid frequency will be ignored.
+ 442:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 443:.\Generated_Source\PSoC4/CyFlash.c ****     * Return:
+ 444:.\Generated_Source\PSoC4/CyFlash.c ****     *  None
+ 445:.\Generated_Source\PSoC4/CyFlash.c ****     *
+ 446:.\Generated_Source\PSoC4/CyFlash.c ****     *******************************************************************************/
+ 447:.\Generated_Source\PSoC4/CyFlash.c ****     void CySysFlashSetWaitCycles(uint32 freq)
+ 448:.\Generated_Source\PSoC4/CyFlash.c ****     {
+ 479              		.loc 1 448 0
+ 480              		.cfi_startproc
+ 481              	.LVL48:
+ 482 0000 08B5     		push	{r3, lr}
+ 483              	.LCFI3:
+ 484              		.cfi_def_cfa_offset 8
+ 485              		.cfi_offset 3, -8
+ 486              		.cfi_offset 14, -4
+ 449:.\Generated_Source\PSoC4/CyFlash.c ****         if ((freq >= CY_SYS_CLK_IMO_MIN_FREQ_MHZ) && (freq <= CY_SYS_CLK_IMO_MAX_FREQ_MHZ))
+ 487              		.loc 1 449 0
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 19
+
+
+ 488 0002 C31E     		sub	r3, r0, #3
+ 489 0004 2D2B     		cmp	r3, #45
+ 490 0006 0BD8     		bhi	.L45
+ 491 0008 074B     		ldr	r3, .L49
+ 450:.\Generated_Source\PSoC4/CyFlash.c ****         {
+ 451:.\Generated_Source\PSoC4/CyFlash.c ****             if ( freq <= CY_FLASH_SYSCLK_BOUNDARY_MHZ )
+ 452:.\Generated_Source\PSoC4/CyFlash.c ****             {
+ 453:.\Generated_Source\PSoC4/CyFlash.c ****                 CY_SYS_CLK_SELECT_REG &= (uint32)(~CY_FLASH_WAIT_STATE_EN);
+ 492              		.loc 1 453 0
+ 493 000a 1968     		ldr	r1, [r3]
+ 451:.\Generated_Source\PSoC4/CyFlash.c ****             if ( freq <= CY_FLASH_SYSCLK_BOUNDARY_MHZ )
+ 494              		.loc 1 451 0
+ 495 000c 1828     		cmp	r0, #24
+ 496 000e 02D8     		bhi	.L46
+ 497              		.loc 1 453 0
+ 498 0010 0648     		ldr	r0, .L49+4
+ 499              	.LVL49:
+ 500 0012 0840     		and	r0, r1
+ 501 0014 02E0     		b	.L48
+ 502              	.LVL50:
+ 503              	.L46:
+ 454:.\Generated_Source\PSoC4/CyFlash.c ****             }
+ 455:.\Generated_Source\PSoC4/CyFlash.c ****             else
+ 456:.\Generated_Source\PSoC4/CyFlash.c ****             {
+ 457:.\Generated_Source\PSoC4/CyFlash.c ****                 CY_SYS_CLK_SELECT_REG |= CY_FLASH_WAIT_STATE_EN;
+ 504              		.loc 1 457 0
+ 505 0016 8022     		mov	r2, #128
+ 506 0018 D002     		lsl	r0, r2, #11
+ 507              	.LVL51:
+ 508 001a 0843     		orr	r0, r1
+ 509              	.L48:
+ 510 001c 1860     		str	r0, [r3]
+ 511 001e 02E0     		b	.L44
+ 512              	.LVL52:
+ 513              	.L45:
+ 458:.\Generated_Source\PSoC4/CyFlash.c ****             }
+ 459:.\Generated_Source\PSoC4/CyFlash.c ****         }
+ 460:.\Generated_Source\PSoC4/CyFlash.c ****         else
+ 461:.\Generated_Source\PSoC4/CyFlash.c ****         {
+ 462:.\Generated_Source\PSoC4/CyFlash.c ****             /* Halt CPU in debug mode if frequency is invalid */
+ 463:.\Generated_Source\PSoC4/CyFlash.c ****             CYASSERT(0u != 0u);
+ 514              		.loc 1 463 0 discriminator 1
+ 515 0020 0020     		mov	r0, #0
+ 516              	.LVL53:
+ 517 0022 FFF7FEFF 		bl	CyHalt
+ 518              	.LVL54:
+ 519              	.L44:
+ 464:.\Generated_Source\PSoC4/CyFlash.c ****         }
+ 465:.\Generated_Source\PSoC4/CyFlash.c ****     }
+ 520              		.loc 1 465 0
+ 521              		@ sp needed for prologue
+ 522 0026 08BD     		pop	{r3, pc}
+ 523              	.L50:
+ 524              		.align	2
+ 525              	.L49:
+ 526 0028 00010B40 		.word	1074462976
+ 527 002c FFFFFBFF 		.word	-262145
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 20
+
+
+ 528              		.cfi_endproc
+ 529              	.LFE6:
+ 530              		.size	CySysFlashSetWaitCycles, .-CySysFlashSetWaitCycles
+ 531              		.text
+ 532              	.Letext0:
+ 533              		.file 2 ".\\Generated_Source\\PSoC4\\cytypes.h"
+ 534              		.file 3 ".\\Generated_Source\\PSoC4\\CyLib.h"
+ 535              		.section	.debug_info,"",%progbits
+ 536              	.Ldebug_info0:
+ 537 0000 EF050000 		.4byte	0x5ef
+ 538 0004 0200     		.2byte	0x2
+ 539 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 540 000a 04       		.byte	0x4
+ 541 000b 01       		.uleb128 0x1
+ 542 000c F0010000 		.4byte	.LASF49
+ 543 0010 01       		.byte	0x1
+ 544 0011 E0000000 		.4byte	.LASF50
+ 545 0015 73020000 		.4byte	.LASF51
+ 546 0019 98000000 		.4byte	.Ldebug_ranges0+0x98
+ 547 001d 00000000 		.4byte	0
+ 548 0021 00000000 		.4byte	0
+ 549 0025 00000000 		.4byte	.Ldebug_line0
+ 550 0029 02       		.uleb128 0x2
+ 551 002a 01       		.byte	0x1
+ 552 002b 06       		.byte	0x6
+ 553 002c 6F000000 		.4byte	.LASF0
+ 554 0030 02       		.uleb128 0x2
+ 555 0031 01       		.byte	0x1
+ 556 0032 08       		.byte	0x8
+ 557 0033 40020000 		.4byte	.LASF1
+ 558 0037 02       		.uleb128 0x2
+ 559 0038 02       		.byte	0x2
+ 560 0039 05       		.byte	0x5
+ 561 003a 69020000 		.4byte	.LASF2
+ 562 003e 02       		.uleb128 0x2
+ 563 003f 02       		.byte	0x2
+ 564 0040 07       		.byte	0x7
+ 565 0041 62010000 		.4byte	.LASF3
+ 566 0045 02       		.uleb128 0x2
+ 567 0046 04       		.byte	0x4
+ 568 0047 05       		.byte	0x5
+ 569 0048 AA000000 		.4byte	.LASF4
+ 570 004c 02       		.uleb128 0x2
+ 571 004d 04       		.byte	0x4
+ 572 004e 07       		.byte	0x7
+ 573 004f 34010000 		.4byte	.LASF5
+ 574 0053 02       		.uleb128 0x2
+ 575 0054 08       		.byte	0x8
+ 576 0055 05       		.byte	0x5
+ 577 0056 61000000 		.4byte	.LASF6
+ 578 005a 02       		.uleb128 0x2
+ 579 005b 08       		.byte	0x8
+ 580 005c 07       		.byte	0x7
+ 581 005d 41000000 		.4byte	.LASF7
+ 582 0061 03       		.uleb128 0x3
+ 583 0062 04       		.byte	0x4
+ 584 0063 05       		.byte	0x5
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 21
+
+
+ 585 0064 696E7400 		.ascii	"int\000"
+ 586 0068 02       		.uleb128 0x2
+ 587 0069 04       		.byte	0x4
+ 588 006a 07       		.byte	0x7
+ 589 006b 27010000 		.4byte	.LASF8
+ 590 006f 04       		.uleb128 0x4
+ 591 0070 BA000000 		.4byte	.LASF9
+ 592 0074 02       		.byte	0x2
+ 593 0075 5B       		.byte	0x5b
+ 594 0076 30000000 		.4byte	0x30
+ 595 007a 04       		.uleb128 0x4
+ 596 007b 00000000 		.4byte	.LASF10
+ 597 007f 02       		.byte	0x2
+ 598 0080 5C       		.byte	0x5c
+ 599 0081 3E000000 		.4byte	0x3e
+ 600 0085 04       		.uleb128 0x4
+ 601 0086 03010000 		.4byte	.LASF11
+ 602 008a 02       		.byte	0x2
+ 603 008b 5D       		.byte	0x5d
+ 604 008c 4C000000 		.4byte	0x4c
+ 605 0090 02       		.uleb128 0x2
+ 606 0091 04       		.byte	0x4
+ 607 0092 04       		.byte	0x4
+ 608 0093 EA010000 		.4byte	.LASF12
+ 609 0097 02       		.uleb128 0x2
+ 610 0098 08       		.byte	0x8
+ 611 0099 04       		.byte	0x4
+ 612 009a D9000000 		.4byte	.LASF13
+ 613 009e 02       		.uleb128 0x2
+ 614 009f 01       		.byte	0x1
+ 615 00a0 08       		.byte	0x8
+ 616 00a1 BE020000 		.4byte	.LASF14
+ 617 00a5 04       		.uleb128 0x4
+ 618 00a6 F9020000 		.4byte	.LASF15
+ 619 00aa 02       		.byte	0x2
+ 620 00ab E8       		.byte	0xe8
+ 621 00ac 4C000000 		.4byte	0x4c
+ 622 00b0 04       		.uleb128 0x4
+ 623 00b1 89010000 		.4byte	.LASF16
+ 624 00b5 02       		.byte	0x2
+ 625 00b6 F2       		.byte	0xf2
+ 626 00b7 BB000000 		.4byte	0xbb
+ 627 00bb 05       		.uleb128 0x5
+ 628 00bc 85000000 		.4byte	0x85
+ 629 00c0 02       		.uleb128 0x2
+ 630 00c1 04       		.byte	0x4
+ 631 00c2 07       		.byte	0x7
+ 632 00c3 8F010000 		.4byte	.LASF17
+ 633 00c7 06       		.uleb128 0x6
+ 634 00c8 04       		.byte	0x4
+ 635 00c9 07       		.uleb128 0x7
+ 636 00ca 9E010000 		.4byte	.LASF52
+ 637 00ce 04       		.byte	0x4
+ 638 00cf 01       		.byte	0x1
+ 639 00d0 1D       		.byte	0x1d
+ 640 00d1 E4000000 		.4byte	0xe4
+ 641 00d5 08       		.uleb128 0x8
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 22
+
+
+ 642 00d6 3A030000 		.4byte	.LASF27
+ 643 00da 01       		.byte	0x1
+ 644 00db 1F       		.byte	0x1f
+ 645 00dc 85000000 		.4byte	0x85
+ 646 00e0 02       		.byte	0x2
+ 647 00e1 23       		.byte	0x23
+ 648 00e2 00       		.uleb128 0
+ 649 00e3 00       		.byte	0
+ 650 00e4 09       		.uleb128 0x9
+ 651 00e5 D5010000 		.4byte	.LASF18
+ 652 00e9 01       		.byte	0x1
+ 653 00ea 4B       		.byte	0x4b
+ 654 00eb 01       		.byte	0x1
+ 655 00ec 01       		.byte	0x1
+ 656 00ed FD000000 		.4byte	0xfd
+ 657 00f1 0A       		.uleb128 0xa
+ 658 00f2 98010000 		.4byte	.LASF20
+ 659 00f6 01       		.byte	0x1
+ 660 00f7 4B       		.byte	0x4b
+ 661 00f8 FD000000 		.4byte	0xfd
+ 662 00fc 00       		.byte	0
+ 663 00fd 0B       		.uleb128 0xb
+ 664 00fe 04       		.byte	0x4
+ 665 00ff C9000000 		.4byte	0xc9
+ 666 0103 09       		.uleb128 0x9
+ 667 0104 0A010000 		.4byte	.LASF19
+ 668 0108 01       		.byte	0x1
+ 669 0109 63       		.byte	0x63
+ 670 010a 01       		.byte	0x1
+ 671 010b 01       		.byte	0x1
+ 672 010c 1C010000 		.4byte	0x11c
+ 673 0110 0A       		.uleb128 0xa
+ 674 0111 98010000 		.4byte	.LASF20
+ 675 0115 01       		.byte	0x1
+ 676 0116 63       		.byte	0x63
+ 677 0117 1C010000 		.4byte	0x11c
+ 678 011b 00       		.byte	0
+ 679 011c 0B       		.uleb128 0xb
+ 680 011d 04       		.byte	0x4
+ 681 011e 22010000 		.4byte	0x122
+ 682 0122 0C       		.uleb128 0xc
+ 683 0123 C9000000 		.4byte	0xc9
+ 684 0127 0D       		.uleb128 0xd
+ 685 0128 4E020000 		.4byte	.LASF53
+ 686 012c 01       		.byte	0x1
+ 687 012d 1401     		.2byte	0x114
+ 688 012f 01       		.byte	0x1
+ 689 0130 85000000 		.4byte	0x85
+ 690 0134 00000000 		.4byte	.LFB4
+ 691 0138 2C000000 		.4byte	.LFE4
+ 692 013c 00000000 		.4byte	.LLST0
+ 693 0140 01       		.byte	0x1
+ 694 0141 64010000 		.4byte	0x164
+ 695 0145 0E       		.uleb128 0xe
+ 696 0146 21010000 		.4byte	.LASF21
+ 697 014a 01       		.byte	0x1
+ 698 014b 1601     		.2byte	0x116
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 23
+
+
+ 699 014d 85000000 		.4byte	0x85
+ 700 0151 01       		.byte	0x1
+ 701 0152 53       		.byte	0x53
+ 702 0153 0F       		.uleb128 0xf
+ 703 0154 38000000 		.4byte	.LASF22
+ 704 0158 01       		.byte	0x1
+ 705 0159 1701     		.2byte	0x117
+ 706 015b 85000000 		.4byte	0x85
+ 707 015f 20000000 		.4byte	.LLST1
+ 708 0163 00       		.byte	0
+ 709 0164 10       		.uleb128 0x10
+ 710 0165 8F000000 		.4byte	.LASF23
+ 711 0169 01       		.byte	0x1
+ 712 016a D4       		.byte	0xd4
+ 713 016b 01       		.byte	0x1
+ 714 016c 85000000 		.4byte	0x85
+ 715 0170 01       		.byte	0x1
+ 716 0171 8C010000 		.4byte	0x18c
+ 717 0175 11       		.uleb128 0x11
+ 718 0176 636D6400 		.ascii	"cmd\000"
+ 719 017a 01       		.byte	0x1
+ 720 017b D4       		.byte	0xd4
+ 721 017c 85000000 		.4byte	0x85
+ 722 0180 11       		.uleb128 0x11
+ 723 0181 61726700 		.ascii	"arg\000"
+ 724 0185 01       		.byte	0x1
+ 725 0186 D4       		.byte	0xd4
+ 726 0187 8C010000 		.4byte	0x18c
+ 727 018b 00       		.byte	0
+ 728 018c 0B       		.uleb128 0xb
+ 729 018d 04       		.byte	0x4
+ 730 018e 92010000 		.4byte	0x192
+ 731 0192 0C       		.uleb128 0xc
+ 732 0193 97010000 		.4byte	0x197
+ 733 0197 12       		.uleb128 0x12
+ 734 0198 10       		.uleb128 0x10
+ 735 0199 C0000000 		.4byte	.LASF24
+ 736 019d 01       		.byte	0x1
+ 737 019e F5       		.byte	0xf5
+ 738 019f 01       		.byte	0x1
+ 739 01a0 85000000 		.4byte	0x85
+ 740 01a4 01       		.byte	0x1
+ 741 01a5 03020000 		.4byte	0x203
+ 742 01a9 0A       		.uleb128 0xa
+ 743 01aa 31000000 		.4byte	.LASF25
+ 744 01ae 01       		.byte	0x1
+ 745 01af F5       		.byte	0xf5
+ 746 01b0 85000000 		.4byte	0x85
+ 747 01b4 0A       		.uleb128 0xa
+ 748 01b5 75010000 		.4byte	.LASF26
+ 749 01b9 01       		.byte	0x1
+ 750 01ba F5       		.byte	0xf5
+ 751 01bb 85000000 		.4byte	0x85
+ 752 01bf 13       		.uleb128 0x13
+ 753 01c0 04       		.byte	0x4
+ 754 01c1 01       		.byte	0x1
+ 755 01c2 F7       		.byte	0xf7
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 24
+
+
+ 756 01c3 F2010000 		.4byte	0x1f2
+ 757 01c7 08       		.uleb128 0x8
+ 758 01c8 7F010000 		.4byte	.LASF28
+ 759 01cc 01       		.byte	0x1
+ 760 01cd F9       		.byte	0xf9
+ 761 01ce 6F000000 		.4byte	0x6f
+ 762 01d2 02       		.byte	0x2
+ 763 01d3 23       		.byte	0x23
+ 764 01d4 00       		.uleb128 0
+ 765 01d5 08       		.uleb128 0x8
+ 766 01d6 84010000 		.4byte	.LASF29
+ 767 01da 01       		.byte	0x1
+ 768 01db FA       		.byte	0xfa
+ 769 01dc 6F000000 		.4byte	0x6f
+ 770 01e0 02       		.byte	0x2
+ 771 01e1 23       		.byte	0x23
+ 772 01e2 01       		.uleb128 0x1
+ 773 01e3 14       		.uleb128 0x14
+ 774 01e4 726F7700 		.ascii	"row\000"
+ 775 01e8 01       		.byte	0x1
+ 776 01e9 FB       		.byte	0xfb
+ 777 01ea 7A000000 		.4byte	0x7a
+ 778 01ee 02       		.byte	0x2
+ 779 01ef 23       		.byte	0x23
+ 780 01f0 02       		.uleb128 0x2
+ 781 01f1 00       		.byte	0
+ 782 01f2 15       		.uleb128 0x15
+ 783 01f3 2A030000 		.4byte	.LASF31
+ 784 01f7 01       		.byte	0x1
+ 785 01f8 FC       		.byte	0xfc
+ 786 01f9 FD010000 		.4byte	0x1fd
+ 787 01fd 05       		.uleb128 0x5
+ 788 01fe BF010000 		.4byte	0x1bf
+ 789 0202 00       		.byte	0
+ 790 0203 16       		.uleb128 0x16
+ 791 0204 01       		.byte	0x1
+ 792 0205 E6020000 		.4byte	.LASF54
+ 793 0209 01       		.byte	0x1
+ 794 020a 3F01     		.2byte	0x13f
+ 795 020c 01       		.byte	0x1
+ 796 020d A5000000 		.4byte	0xa5
+ 797 0211 00000000 		.4byte	.LFB5
+ 798 0215 58010000 		.4byte	.LFE5
+ 799 0219 3F000000 		.4byte	.LLST2
+ 800 021d 01       		.byte	0x1
+ 801 021e 21050000 		.4byte	0x521
+ 802 0222 17       		.uleb128 0x17
+ 803 0223 31000000 		.4byte	.LASF25
+ 804 0227 01       		.byte	0x1
+ 805 0228 3F01     		.2byte	0x13f
+ 806 022a 85000000 		.4byte	0x85
+ 807 022e 6C000000 		.4byte	.LLST3
+ 808 0232 17       		.uleb128 0x17
+ 809 0233 1A030000 		.4byte	.LASF30
+ 810 0237 01       		.byte	0x1
+ 811 0238 3F01     		.2byte	0x13f
+ 812 023a 21050000 		.4byte	0x521
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 25
+
+
+ 813 023e B1000000 		.4byte	.LLST4
+ 814 0242 0F       		.uleb128 0xf
+ 815 0243 38000000 		.4byte	.LASF22
+ 816 0247 01       		.byte	0x1
+ 817 0248 4101     		.2byte	0x141
+ 818 024a A5000000 		.4byte	0xa5
+ 819 024e D2000000 		.4byte	.LLST5
+ 820 0252 18       		.uleb128 0x18
+ 821 0253 2F030000 		.4byte	.LASF32
+ 822 0257 01       		.byte	0x1
+ 823 0258 4201     		.2byte	0x142
+ 824 025a 85000000 		.4byte	0x85
+ 825 025e 0F       		.uleb128 0xf
+ 826 025f 80000000 		.4byte	.LASF33
+ 827 0263 01       		.byte	0x1
+ 828 0264 4301     		.2byte	0x143
+ 829 0266 6F000000 		.4byte	0x6f
+ 830 026a 34010000 		.4byte	.LLST6
+ 831 026e 0F       		.uleb128 0xf
+ 832 026f B2020000 		.4byte	.LASF34
+ 833 0273 01       		.byte	0x1
+ 834 0274 4401     		.2byte	0x144
+ 835 0276 C9000000 		.4byte	0xc9
+ 836 027a 49010000 		.4byte	.LLST7
+ 837 027e 19       		.uleb128 0x19
+ 838 027f 88       		.byte	0x88
+ 839 0280 01       		.byte	0x1
+ 840 0281 4501     		.2byte	0x145
+ 841 0283 E2020000 		.4byte	0x2e2
+ 842 0287 1A       		.uleb128 0x1a
+ 843 0288 7F010000 		.4byte	.LASF28
+ 844 028c 01       		.byte	0x1
+ 845 028d 4701     		.2byte	0x147
+ 846 028f 6F000000 		.4byte	0x6f
+ 847 0293 02       		.byte	0x2
+ 848 0294 23       		.byte	0x23
+ 849 0295 00       		.uleb128 0
+ 850 0296 1A       		.uleb128 0x1a
+ 851 0297 84010000 		.4byte	.LASF29
+ 852 029b 01       		.byte	0x1
+ 853 029c 4801     		.2byte	0x148
+ 854 029e 6F000000 		.4byte	0x6f
+ 855 02a2 02       		.byte	0x2
+ 856 02a3 23       		.byte	0x23
+ 857 02a4 01       		.uleb128 0x1
+ 858 02a5 1A       		.uleb128 0x1a
+ 859 02a6 58000000 		.4byte	.LASF35
+ 860 02aa 01       		.byte	0x1
+ 861 02ab 4901     		.2byte	0x149
+ 862 02ad 6F000000 		.4byte	0x6f
+ 863 02b1 02       		.byte	0x2
+ 864 02b2 23       		.byte	0x23
+ 865 02b3 02       		.uleb128 0x2
+ 866 02b4 1A       		.uleb128 0x1a
+ 867 02b5 CA010000 		.4byte	.LASF36
+ 868 02b9 01       		.byte	0x1
+ 869 02ba 4A01     		.2byte	0x14a
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 26
+
+
+ 870 02bc 6F000000 		.4byte	0x6f
+ 871 02c0 02       		.byte	0x2
+ 872 02c1 23       		.byte	0x23
+ 873 02c2 03       		.uleb128 0x3
+ 874 02c3 1A       		.uleb128 0x1a
+ 875 02c4 CE020000 		.4byte	.LASF37
+ 876 02c8 01       		.byte	0x1
+ 877 02c9 4B01     		.2byte	0x14b
+ 878 02cb 85000000 		.4byte	0x85
+ 879 02cf 02       		.byte	0x2
+ 880 02d0 23       		.byte	0x23
+ 881 02d1 04       		.uleb128 0x4
+ 882 02d2 1A       		.uleb128 0x1a
+ 883 02d3 5D010000 		.4byte	.LASF38
+ 884 02d7 01       		.byte	0x1
+ 885 02d8 4C01     		.2byte	0x14c
+ 886 02da 2C050000 		.4byte	0x52c
+ 887 02de 02       		.byte	0x2
+ 888 02df 23       		.byte	0x23
+ 889 02e0 08       		.uleb128 0x8
+ 890 02e1 00       		.byte	0
+ 891 02e2 0E       		.uleb128 0xe
+ 892 02e3 22030000 		.4byte	.LASF39
+ 893 02e7 01       		.byte	0x1
+ 894 02e8 4D01     		.2byte	0x14d
+ 895 02ea F2020000 		.4byte	0x2f2
+ 896 02ee 03       		.byte	0x3
+ 897 02ef 91       		.byte	0x91
+ 898 02f0 E07E     		.sleb128 -160
+ 899 02f2 05       		.uleb128 0x5
+ 900 02f3 7E020000 		.4byte	0x27e
+ 901 02f7 0F       		.uleb128 0xf
+ 902 02f8 B3010000 		.4byte	.LASF40
+ 903 02fc 01       		.byte	0x1
+ 904 02fd 4F01     		.2byte	0x14f
+ 905 02ff 85000000 		.4byte	0x85
+ 906 0303 6D010000 		.4byte	.LLST8
+ 907 0307 0F       		.uleb128 0xf
+ 908 0308 C3020000 		.4byte	.LASF41
+ 909 030c 01       		.byte	0x1
+ 910 030d 5001     		.2byte	0x150
+ 911 030f 85000000 		.4byte	0x85
+ 912 0313 8D010000 		.4byte	.LLST9
+ 913 0317 0F       		.uleb128 0xf
+ 914 0318 1D000000 		.4byte	.LASF42
+ 915 031c 01       		.byte	0x1
+ 916 031d 5101     		.2byte	0x151
+ 917 031f 85000000 		.4byte	0x85
+ 918 0323 AC010000 		.4byte	.LLST10
+ 919 0327 0F       		.uleb128 0xf
+ 920 0328 28000000 		.4byte	.LASF43
+ 921 032c 01       		.byte	0x1
+ 922 032d 5201     		.2byte	0x152
+ 923 032f 85000000 		.4byte	0x85
+ 924 0333 E4010000 		.4byte	.LLST11
+ 925 0337 0F       		.uleb128 0xf
+ 926 0338 A5000000 		.4byte	.LASF44
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 27
+
+
+ 927 033c 01       		.byte	0x1
+ 928 033d 5301     		.2byte	0x153
+ 929 033f 85000000 		.4byte	0x85
+ 930 0343 0E020000 		.4byte	.LLST12
+ 931 0347 1B       		.uleb128 0x1b
+ 932 0348 6900     		.ascii	"i\000"
+ 933 034a 01       		.byte	0x1
+ 934 034b 5401     		.2byte	0x154
+ 935 034d 85000000 		.4byte	0x85
+ 936 0351 38020000 		.4byte	.LLST13
+ 937 0355 1C       		.uleb128 0x1c
+ 938 0356 38000000 		.4byte	.LBB24
+ 939 035a 48000000 		.4byte	.LBE24
+ 940 035e 71030000 		.4byte	0x371
+ 941 0362 1B       		.uleb128 0x1b
+ 942 0363 7700     		.ascii	"w\000"
+ 943 0365 01       		.byte	0x1
+ 944 0366 6A01     		.2byte	0x16a
+ 945 0368 85000000 		.4byte	0x85
+ 946 036c 6F020000 		.4byte	.LLST14
+ 947 0370 00       		.byte	0
+ 948 0371 1D       		.uleb128 0x1d
+ 949 0372 64010000 		.4byte	0x164
+ 950 0376 5E000000 		.4byte	.LBB25
+ 951 037a 70000000 		.4byte	.LBE25
+ 952 037e 01       		.byte	0x1
+ 953 037f 7C01     		.2byte	0x17c
+ 954 0381 98030000 		.4byte	0x398
+ 955 0385 1E       		.uleb128 0x1e
+ 956 0386 80010000 		.4byte	0x180
+ 957 038a 8D020000 		.4byte	.LLST15
+ 958 038e 1E       		.uleb128 0x1e
+ 959 038f 75010000 		.4byte	0x175
+ 960 0393 D4020000 		.4byte	.LLST16
+ 961 0397 00       		.byte	0
+ 962 0398 1F       		.uleb128 0x1f
+ 963 0399 E4000000 		.4byte	0xe4
+ 964 039d 7C000000 		.4byte	.LBB27
+ 965 03a1 00000000 		.4byte	.Ldebug_ranges0+0
+ 966 03a5 01       		.byte	0x1
+ 967 03a6 8501     		.2byte	0x185
+ 968 03a8 B6030000 		.4byte	0x3b6
+ 969 03ac 1E       		.uleb128 0x1e
+ 970 03ad F1000000 		.4byte	0xf1
+ 971 03b1 E8020000 		.4byte	.LLST17
+ 972 03b5 00       		.byte	0
+ 973 03b6 1F       		.uleb128 0x1f
+ 974 03b7 98010000 		.4byte	0x198
+ 975 03bb 82000000 		.4byte	.LBB32
+ 976 03bf 20000000 		.4byte	.Ldebug_ranges0+0x20
+ 977 03c3 01       		.byte	0x1
+ 978 03c4 8701     		.2byte	0x187
+ 979 03c6 0F040000 		.4byte	0x40f
+ 980 03ca 1E       		.uleb128 0x1e
+ 981 03cb B4010000 		.4byte	0x1b4
+ 982 03cf 00030000 		.4byte	.LLST18
+ 983 03d3 1E       		.uleb128 0x1e
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 28
+
+
+ 984 03d4 A9010000 		.4byte	0x1a9
+ 985 03d8 14030000 		.4byte	.LLST19
+ 986 03dc 20       		.uleb128 0x20
+ 987 03dd 38000000 		.4byte	.Ldebug_ranges0+0x38
+ 988 03e1 21       		.uleb128 0x21
+ 989 03e2 F2010000 		.4byte	0x1f2
+ 990 03e6 03       		.byte	0x3
+ 991 03e7 91       		.byte	0x91
+ 992 03e8 D87E     		.sleb128 -168
+ 993 03ea 22       		.uleb128 0x22
+ 994 03eb 64010000 		.4byte	0x164
+ 995 03ef 98000000 		.4byte	.LBB34
+ 996 03f3 50000000 		.4byte	.Ldebug_ranges0+0x50
+ 997 03f7 01       		.byte	0x1
+ 998 03f8 0201     		.2byte	0x102
+ 999 03fa 1E       		.uleb128 0x1e
+ 1000 03fb 80010000 		.4byte	0x180
+ 1001 03ff 35030000 		.4byte	.LLST20
+ 1002 0403 1E       		.uleb128 0x1e
+ 1003 0404 75010000 		.4byte	0x175
+ 1004 0408 70030000 		.4byte	.LLST21
+ 1005 040c 00       		.byte	0
+ 1006 040d 00       		.byte	0
+ 1007 040e 00       		.byte	0
+ 1008 040f 1F       		.uleb128 0x1f
+ 1009 0410 64010000 		.4byte	0x164
+ 1010 0414 D2000000 		.4byte	.LBB41
+ 1011 0418 68000000 		.4byte	.Ldebug_ranges0+0x68
+ 1012 041c 01       		.byte	0x1
+ 1013 041d 9201     		.2byte	0x192
+ 1014 041f 36040000 		.4byte	0x436
+ 1015 0423 1E       		.uleb128 0x1e
+ 1016 0424 80010000 		.4byte	0x180
+ 1017 0428 84030000 		.4byte	.LLST22
+ 1018 042c 1E       		.uleb128 0x1e
+ 1019 042d 75010000 		.4byte	0x175
+ 1020 0431 B4030000 		.4byte	.LLST23
+ 1021 0435 00       		.byte	0
+ 1022 0436 1D       		.uleb128 0x1d
+ 1023 0437 98010000 		.4byte	0x198
+ 1024 043b EE000000 		.4byte	.LBB45
+ 1025 043f 12010000 		.4byte	.LBE45
+ 1026 0443 01       		.byte	0x1
+ 1027 0444 9601     		.2byte	0x196
+ 1028 0446 8F040000 		.4byte	0x48f
+ 1029 044a 1E       		.uleb128 0x1e
+ 1030 044b B4010000 		.4byte	0x1b4
+ 1031 044f C8030000 		.4byte	.LLST24
+ 1032 0453 23       		.uleb128 0x23
+ 1033 0454 A9010000 		.4byte	0x1a9
+ 1034 0458 24       		.uleb128 0x24
+ 1035 0459 EE000000 		.4byte	.LBB46
+ 1036 045d 12010000 		.4byte	.LBE46
+ 1037 0461 21       		.uleb128 0x21
+ 1038 0462 F2010000 		.4byte	0x1f2
+ 1039 0466 03       		.byte	0x3
+ 1040 0467 91       		.byte	0x91
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 29
+
+
+ 1041 0468 DC7E     		.sleb128 -164
+ 1042 046a 22       		.uleb128 0x22
+ 1043 046b 64010000 		.4byte	0x164
+ 1044 046f FE000000 		.4byte	.LBB47
+ 1045 0473 80000000 		.4byte	.Ldebug_ranges0+0x80
+ 1046 0477 01       		.byte	0x1
+ 1047 0478 0201     		.2byte	0x102
+ 1048 047a 1E       		.uleb128 0x1e
+ 1049 047b 80010000 		.4byte	0x180
+ 1050 047f DC030000 		.4byte	.LLST25
+ 1051 0483 1E       		.uleb128 0x1e
+ 1052 0484 75010000 		.4byte	0x175
+ 1053 0488 07040000 		.4byte	.LLST26
+ 1054 048c 00       		.byte	0
+ 1055 048d 00       		.byte	0
+ 1056 048e 00       		.byte	0
+ 1057 048f 1D       		.uleb128 0x1d
+ 1058 0490 03010000 		.4byte	0x103
+ 1059 0494 1C010000 		.4byte	.LBB51
+ 1060 0498 20010000 		.4byte	.LBE51
+ 1061 049c 01       		.byte	0x1
+ 1062 049d 9F01     		.2byte	0x19f
+ 1063 049f AD040000 		.4byte	0x4ad
+ 1064 04a3 1E       		.uleb128 0x1e
+ 1065 04a4 10010000 		.4byte	0x110
+ 1066 04a8 1B040000 		.4byte	.LLST27
+ 1067 04ac 00       		.byte	0
+ 1068 04ad 25       		.uleb128 0x25
+ 1069 04ae 30000000 		.4byte	.LVL6
+ 1070 04b2 77050000 		.4byte	0x577
+ 1071 04b6 CF040000 		.4byte	0x4cf
+ 1072 04ba 26       		.uleb128 0x26
+ 1073 04bb 01       		.byte	0x1
+ 1074 04bc 52       		.byte	0x52
+ 1075 04bd 02       		.byte	0x2
+ 1076 04be 08       		.byte	0x8
+ 1077 04bf 80       		.byte	0x80
+ 1078 04c0 26       		.uleb128 0x26
+ 1079 04c1 01       		.byte	0x1
+ 1080 04c2 51       		.byte	0x51
+ 1081 04c3 03       		.byte	0x3
+ 1082 04c4 F3       		.byte	0xf3
+ 1083 04c5 01       		.uleb128 0x1
+ 1084 04c6 51       		.byte	0x51
+ 1085 04c7 26       		.uleb128 0x26
+ 1086 04c8 01       		.byte	0x1
+ 1087 04c9 50       		.byte	0x50
+ 1088 04ca 03       		.byte	0x3
+ 1089 04cb 91       		.byte	0x91
+ 1090 04cc E87E     		.sleb128 -152
+ 1091 04ce 00       		.byte	0
+ 1092 04cf 27       		.uleb128 0x27
+ 1093 04d0 74000000 		.4byte	.LVL17
+ 1094 04d4 27010000 		.4byte	0x127
+ 1095 04d8 27       		.uleb128 0x27
+ 1096 04d9 7C000000 		.4byte	.LVL19
+ 1097 04dd 9F050000 		.4byte	0x59f
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 30
+
+
+ 1098 04e1 25       		.uleb128 0x25
+ 1099 04e2 CC000000 		.4byte	.LVL29
+ 1100 04e6 AD050000 		.4byte	0x5ad
+ 1101 04ea 04050000 		.4byte	0x504
+ 1102 04ee 26       		.uleb128 0x26
+ 1103 04ef 01       		.byte	0x1
+ 1104 04f0 52       		.byte	0x52
+ 1105 04f1 02       		.byte	0x2
+ 1106 04f2 08       		.byte	0x8
+ 1107 04f3 80       		.byte	0x80
+ 1108 04f4 26       		.uleb128 0x26
+ 1109 04f5 01       		.byte	0x1
+ 1110 04f6 51       		.byte	0x51
+ 1111 04f7 04       		.byte	0x4
+ 1112 04f8 91       		.byte	0x91
+ 1113 04f9 C47E     		.sleb128 -188
+ 1114 04fb 06       		.byte	0x6
+ 1115 04fc 26       		.uleb128 0x26
+ 1116 04fd 01       		.byte	0x1
+ 1117 04fe 50       		.byte	0x50
+ 1118 04ff 03       		.byte	0x3
+ 1119 0500 91       		.byte	0x91
+ 1120 0501 E87E     		.sleb128 -152
+ 1121 0503 00       		.byte	0
+ 1122 0504 27       		.uleb128 0x27
+ 1123 0505 EA000000 		.4byte	.LVL32
+ 1124 0509 27010000 		.4byte	0x127
+ 1125 050d 28       		.uleb128 0x28
+ 1126 050e 26010000 		.4byte	.LVL41
+ 1127 0512 CE050000 		.4byte	0x5ce
+ 1128 0516 26       		.uleb128 0x26
+ 1129 0517 01       		.byte	0x1
+ 1130 0518 50       		.byte	0x50
+ 1131 0519 05       		.byte	0x5
+ 1132 051a 91       		.byte	0x91
+ 1133 051b D47E     		.sleb128 -172
+ 1134 051d 94       		.byte	0x94
+ 1135 051e 01       		.byte	0x1
+ 1136 051f 00       		.byte	0
+ 1137 0520 00       		.byte	0
+ 1138 0521 0B       		.uleb128 0xb
+ 1139 0522 04       		.byte	0x4
+ 1140 0523 27050000 		.4byte	0x527
+ 1141 0527 0C       		.uleb128 0xc
+ 1142 0528 6F000000 		.4byte	0x6f
+ 1143 052c 29       		.uleb128 0x29
+ 1144 052d 85000000 		.4byte	0x85
+ 1145 0531 3C050000 		.4byte	0x53c
+ 1146 0535 2A       		.uleb128 0x2a
+ 1147 0536 C0000000 		.4byte	0xc0
+ 1148 053a 1F       		.byte	0x1f
+ 1149 053b 00       		.byte	0
+ 1150 053c 2B       		.uleb128 0x2b
+ 1151 053d 01       		.byte	0x1
+ 1152 053e 02030000 		.4byte	.LASF55
+ 1153 0542 01       		.byte	0x1
+ 1154 0543 BF01     		.2byte	0x1bf
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 31
+
+
+ 1155 0545 01       		.byte	0x1
+ 1156 0546 00000000 		.4byte	.LFB6
+ 1157 054a 30000000 		.4byte	.LFE6
+ 1158 054e 33040000 		.4byte	.LLST28
+ 1159 0552 01       		.byte	0x1
+ 1160 0553 77050000 		.4byte	0x577
+ 1161 0557 17       		.uleb128 0x17
+ 1162 0558 7B000000 		.4byte	.LASF45
+ 1163 055c 01       		.byte	0x1
+ 1164 055d BF01     		.2byte	0x1bf
+ 1165 055f 85000000 		.4byte	0x85
+ 1166 0563 53040000 		.4byte	.LLST29
+ 1167 0567 28       		.uleb128 0x28
+ 1168 0568 26000000 		.4byte	.LVL54
+ 1169 056c E2050000 		.4byte	0x5e2
+ 1170 0570 26       		.uleb128 0x26
+ 1171 0571 01       		.byte	0x1
+ 1172 0572 50       		.byte	0x50
+ 1173 0573 01       		.byte	0x1
+ 1174 0574 30       		.byte	0x30
+ 1175 0575 00       		.byte	0
+ 1176 0576 00       		.byte	0
+ 1177 0577 2C       		.uleb128 0x2c
+ 1178 0578 01       		.byte	0x1
+ 1179 0579 B3000000 		.4byte	.LASF46
+ 1180 057d 01       		.byte	0x1
+ 1181 057e C7000000 		.4byte	0xc7
+ 1182 0582 01       		.byte	0x1
+ 1183 0583 01       		.byte	0x1
+ 1184 0584 98050000 		.4byte	0x598
+ 1185 0588 2D       		.uleb128 0x2d
+ 1186 0589 C7000000 		.4byte	0xc7
+ 1187 058d 2D       		.uleb128 0x2d
+ 1188 058e 98050000 		.4byte	0x598
+ 1189 0592 2D       		.uleb128 0x2d
+ 1190 0593 C0000000 		.4byte	0xc0
+ 1191 0597 00       		.byte	0
+ 1192 0598 0B       		.uleb128 0xb
+ 1193 0599 04       		.byte	0x4
+ 1194 059a 9E050000 		.4byte	0x59e
+ 1195 059e 2E       		.uleb128 0x2e
+ 1196 059f 2F       		.uleb128 0x2f
+ 1197 05a0 01       		.byte	0x1
+ 1198 05a1 46010000 		.4byte	.LASF56
+ 1199 05a5 03       		.byte	0x3
+ 1200 05a6 73       		.byte	0x73
+ 1201 05a7 01       		.byte	0x1
+ 1202 05a8 6F000000 		.4byte	0x6f
+ 1203 05ac 01       		.byte	0x1
+ 1204 05ad 2C       		.uleb128 0x2c
+ 1205 05ae 01       		.byte	0x1
+ 1206 05af DF020000 		.4byte	.LASF47
+ 1207 05b3 01       		.byte	0x1
+ 1208 05b4 C7000000 		.4byte	0xc7
+ 1209 05b8 01       		.byte	0x1
+ 1210 05b9 01       		.byte	0x1
+ 1211 05ba CE050000 		.4byte	0x5ce
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 32
+
+
+ 1212 05be 2D       		.uleb128 0x2d
+ 1213 05bf C7000000 		.4byte	0xc7
+ 1214 05c3 2D       		.uleb128 0x2d
+ 1215 05c4 61000000 		.4byte	0x61
+ 1216 05c8 2D       		.uleb128 0x2d
+ 1217 05c9 C0000000 		.4byte	0xc0
+ 1218 05cd 00       		.byte	0
+ 1219 05ce 30       		.uleb128 0x30
+ 1220 05cf 01       		.byte	0x1
+ 1221 05d0 07000000 		.4byte	.LASF48
+ 1222 05d4 03       		.byte	0x3
+ 1223 05d5 74       		.byte	0x74
+ 1224 05d6 01       		.byte	0x1
+ 1225 05d7 01       		.byte	0x1
+ 1226 05d8 E2050000 		.4byte	0x5e2
+ 1227 05dc 2D       		.uleb128 0x2d
+ 1228 05dd 6F000000 		.4byte	0x6f
+ 1229 05e1 00       		.byte	0
+ 1230 05e2 31       		.uleb128 0x31
+ 1231 05e3 01       		.byte	0x1
+ 1232 05e4 39020000 		.4byte	.LASF57
+ 1233 05e8 03       		.byte	0x3
+ 1234 05e9 75       		.byte	0x75
+ 1235 05ea 01       		.byte	0x1
+ 1236 05eb 01       		.byte	0x1
+ 1237 05ec 2D       		.uleb128 0x2d
+ 1238 05ed 6F000000 		.4byte	0x6f
+ 1239 05f1 00       		.byte	0
+ 1240 05f2 00       		.byte	0
+ 1241              		.section	.debug_abbrev,"",%progbits
+ 1242              	.Ldebug_abbrev0:
+ 1243 0000 01       		.uleb128 0x1
+ 1244 0001 11       		.uleb128 0x11
+ 1245 0002 01       		.byte	0x1
+ 1246 0003 25       		.uleb128 0x25
+ 1247 0004 0E       		.uleb128 0xe
+ 1248 0005 13       		.uleb128 0x13
+ 1249 0006 0B       		.uleb128 0xb
+ 1250 0007 03       		.uleb128 0x3
+ 1251 0008 0E       		.uleb128 0xe
+ 1252 0009 1B       		.uleb128 0x1b
+ 1253 000a 0E       		.uleb128 0xe
+ 1254 000b 55       		.uleb128 0x55
+ 1255 000c 06       		.uleb128 0x6
+ 1256 000d 11       		.uleb128 0x11
+ 1257 000e 01       		.uleb128 0x1
+ 1258 000f 52       		.uleb128 0x52
+ 1259 0010 01       		.uleb128 0x1
+ 1260 0011 10       		.uleb128 0x10
+ 1261 0012 06       		.uleb128 0x6
+ 1262 0013 00       		.byte	0
+ 1263 0014 00       		.byte	0
+ 1264 0015 02       		.uleb128 0x2
+ 1265 0016 24       		.uleb128 0x24
+ 1266 0017 00       		.byte	0
+ 1267 0018 0B       		.uleb128 0xb
+ 1268 0019 0B       		.uleb128 0xb
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 33
+
+
+ 1269 001a 3E       		.uleb128 0x3e
+ 1270 001b 0B       		.uleb128 0xb
+ 1271 001c 03       		.uleb128 0x3
+ 1272 001d 0E       		.uleb128 0xe
+ 1273 001e 00       		.byte	0
+ 1274 001f 00       		.byte	0
+ 1275 0020 03       		.uleb128 0x3
+ 1276 0021 24       		.uleb128 0x24
+ 1277 0022 00       		.byte	0
+ 1278 0023 0B       		.uleb128 0xb
+ 1279 0024 0B       		.uleb128 0xb
+ 1280 0025 3E       		.uleb128 0x3e
+ 1281 0026 0B       		.uleb128 0xb
+ 1282 0027 03       		.uleb128 0x3
+ 1283 0028 08       		.uleb128 0x8
+ 1284 0029 00       		.byte	0
+ 1285 002a 00       		.byte	0
+ 1286 002b 04       		.uleb128 0x4
+ 1287 002c 16       		.uleb128 0x16
+ 1288 002d 00       		.byte	0
+ 1289 002e 03       		.uleb128 0x3
+ 1290 002f 0E       		.uleb128 0xe
+ 1291 0030 3A       		.uleb128 0x3a
+ 1292 0031 0B       		.uleb128 0xb
+ 1293 0032 3B       		.uleb128 0x3b
+ 1294 0033 0B       		.uleb128 0xb
+ 1295 0034 49       		.uleb128 0x49
+ 1296 0035 13       		.uleb128 0x13
+ 1297 0036 00       		.byte	0
+ 1298 0037 00       		.byte	0
+ 1299 0038 05       		.uleb128 0x5
+ 1300 0039 35       		.uleb128 0x35
+ 1301 003a 00       		.byte	0
+ 1302 003b 49       		.uleb128 0x49
+ 1303 003c 13       		.uleb128 0x13
+ 1304 003d 00       		.byte	0
+ 1305 003e 00       		.byte	0
+ 1306 003f 06       		.uleb128 0x6
+ 1307 0040 0F       		.uleb128 0xf
+ 1308 0041 00       		.byte	0
+ 1309 0042 0B       		.uleb128 0xb
+ 1310 0043 0B       		.uleb128 0xb
+ 1311 0044 00       		.byte	0
+ 1312 0045 00       		.byte	0
+ 1313 0046 07       		.uleb128 0x7
+ 1314 0047 13       		.uleb128 0x13
+ 1315 0048 01       		.byte	0x1
+ 1316 0049 03       		.uleb128 0x3
+ 1317 004a 0E       		.uleb128 0xe
+ 1318 004b 0B       		.uleb128 0xb
+ 1319 004c 0B       		.uleb128 0xb
+ 1320 004d 3A       		.uleb128 0x3a
+ 1321 004e 0B       		.uleb128 0xb
+ 1322 004f 3B       		.uleb128 0x3b
+ 1323 0050 0B       		.uleb128 0xb
+ 1324 0051 01       		.uleb128 0x1
+ 1325 0052 13       		.uleb128 0x13
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 34
+
+
+ 1326 0053 00       		.byte	0
+ 1327 0054 00       		.byte	0
+ 1328 0055 08       		.uleb128 0x8
+ 1329 0056 0D       		.uleb128 0xd
+ 1330 0057 00       		.byte	0
+ 1331 0058 03       		.uleb128 0x3
+ 1332 0059 0E       		.uleb128 0xe
+ 1333 005a 3A       		.uleb128 0x3a
+ 1334 005b 0B       		.uleb128 0xb
+ 1335 005c 3B       		.uleb128 0x3b
+ 1336 005d 0B       		.uleb128 0xb
+ 1337 005e 49       		.uleb128 0x49
+ 1338 005f 13       		.uleb128 0x13
+ 1339 0060 38       		.uleb128 0x38
+ 1340 0061 0A       		.uleb128 0xa
+ 1341 0062 00       		.byte	0
+ 1342 0063 00       		.byte	0
+ 1343 0064 09       		.uleb128 0x9
+ 1344 0065 2E       		.uleb128 0x2e
+ 1345 0066 01       		.byte	0x1
+ 1346 0067 03       		.uleb128 0x3
+ 1347 0068 0E       		.uleb128 0xe
+ 1348 0069 3A       		.uleb128 0x3a
+ 1349 006a 0B       		.uleb128 0xb
+ 1350 006b 3B       		.uleb128 0x3b
+ 1351 006c 0B       		.uleb128 0xb
+ 1352 006d 27       		.uleb128 0x27
+ 1353 006e 0C       		.uleb128 0xc
+ 1354 006f 20       		.uleb128 0x20
+ 1355 0070 0B       		.uleb128 0xb
+ 1356 0071 01       		.uleb128 0x1
+ 1357 0072 13       		.uleb128 0x13
+ 1358 0073 00       		.byte	0
+ 1359 0074 00       		.byte	0
+ 1360 0075 0A       		.uleb128 0xa
+ 1361 0076 05       		.uleb128 0x5
+ 1362 0077 00       		.byte	0
+ 1363 0078 03       		.uleb128 0x3
+ 1364 0079 0E       		.uleb128 0xe
+ 1365 007a 3A       		.uleb128 0x3a
+ 1366 007b 0B       		.uleb128 0xb
+ 1367 007c 3B       		.uleb128 0x3b
+ 1368 007d 0B       		.uleb128 0xb
+ 1369 007e 49       		.uleb128 0x49
+ 1370 007f 13       		.uleb128 0x13
+ 1371 0080 00       		.byte	0
+ 1372 0081 00       		.byte	0
+ 1373 0082 0B       		.uleb128 0xb
+ 1374 0083 0F       		.uleb128 0xf
+ 1375 0084 00       		.byte	0
+ 1376 0085 0B       		.uleb128 0xb
+ 1377 0086 0B       		.uleb128 0xb
+ 1378 0087 49       		.uleb128 0x49
+ 1379 0088 13       		.uleb128 0x13
+ 1380 0089 00       		.byte	0
+ 1381 008a 00       		.byte	0
+ 1382 008b 0C       		.uleb128 0xc
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 35
+
+
+ 1383 008c 26       		.uleb128 0x26
+ 1384 008d 00       		.byte	0
+ 1385 008e 49       		.uleb128 0x49
+ 1386 008f 13       		.uleb128 0x13
+ 1387 0090 00       		.byte	0
+ 1388 0091 00       		.byte	0
+ 1389 0092 0D       		.uleb128 0xd
+ 1390 0093 2E       		.uleb128 0x2e
+ 1391 0094 01       		.byte	0x1
+ 1392 0095 03       		.uleb128 0x3
+ 1393 0096 0E       		.uleb128 0xe
+ 1394 0097 3A       		.uleb128 0x3a
+ 1395 0098 0B       		.uleb128 0xb
+ 1396 0099 3B       		.uleb128 0x3b
+ 1397 009a 05       		.uleb128 0x5
+ 1398 009b 27       		.uleb128 0x27
+ 1399 009c 0C       		.uleb128 0xc
+ 1400 009d 49       		.uleb128 0x49
+ 1401 009e 13       		.uleb128 0x13
+ 1402 009f 11       		.uleb128 0x11
+ 1403 00a0 01       		.uleb128 0x1
+ 1404 00a1 12       		.uleb128 0x12
+ 1405 00a2 01       		.uleb128 0x1
+ 1406 00a3 40       		.uleb128 0x40
+ 1407 00a4 06       		.uleb128 0x6
+ 1408 00a5 9742     		.uleb128 0x2117
+ 1409 00a7 0C       		.uleb128 0xc
+ 1410 00a8 01       		.uleb128 0x1
+ 1411 00a9 13       		.uleb128 0x13
+ 1412 00aa 00       		.byte	0
+ 1413 00ab 00       		.byte	0
+ 1414 00ac 0E       		.uleb128 0xe
+ 1415 00ad 34       		.uleb128 0x34
+ 1416 00ae 00       		.byte	0
+ 1417 00af 03       		.uleb128 0x3
+ 1418 00b0 0E       		.uleb128 0xe
+ 1419 00b1 3A       		.uleb128 0x3a
+ 1420 00b2 0B       		.uleb128 0xb
+ 1421 00b3 3B       		.uleb128 0x3b
+ 1422 00b4 05       		.uleb128 0x5
+ 1423 00b5 49       		.uleb128 0x49
+ 1424 00b6 13       		.uleb128 0x13
+ 1425 00b7 02       		.uleb128 0x2
+ 1426 00b8 0A       		.uleb128 0xa
+ 1427 00b9 00       		.byte	0
+ 1428 00ba 00       		.byte	0
+ 1429 00bb 0F       		.uleb128 0xf
+ 1430 00bc 34       		.uleb128 0x34
+ 1431 00bd 00       		.byte	0
+ 1432 00be 03       		.uleb128 0x3
+ 1433 00bf 0E       		.uleb128 0xe
+ 1434 00c0 3A       		.uleb128 0x3a
+ 1435 00c1 0B       		.uleb128 0xb
+ 1436 00c2 3B       		.uleb128 0x3b
+ 1437 00c3 05       		.uleb128 0x5
+ 1438 00c4 49       		.uleb128 0x49
+ 1439 00c5 13       		.uleb128 0x13
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 36
+
+
+ 1440 00c6 02       		.uleb128 0x2
+ 1441 00c7 06       		.uleb128 0x6
+ 1442 00c8 00       		.byte	0
+ 1443 00c9 00       		.byte	0
+ 1444 00ca 10       		.uleb128 0x10
+ 1445 00cb 2E       		.uleb128 0x2e
+ 1446 00cc 01       		.byte	0x1
+ 1447 00cd 03       		.uleb128 0x3
+ 1448 00ce 0E       		.uleb128 0xe
+ 1449 00cf 3A       		.uleb128 0x3a
+ 1450 00d0 0B       		.uleb128 0xb
+ 1451 00d1 3B       		.uleb128 0x3b
+ 1452 00d2 0B       		.uleb128 0xb
+ 1453 00d3 27       		.uleb128 0x27
+ 1454 00d4 0C       		.uleb128 0xc
+ 1455 00d5 49       		.uleb128 0x49
+ 1456 00d6 13       		.uleb128 0x13
+ 1457 00d7 20       		.uleb128 0x20
+ 1458 00d8 0B       		.uleb128 0xb
+ 1459 00d9 01       		.uleb128 0x1
+ 1460 00da 13       		.uleb128 0x13
+ 1461 00db 00       		.byte	0
+ 1462 00dc 00       		.byte	0
+ 1463 00dd 11       		.uleb128 0x11
+ 1464 00de 05       		.uleb128 0x5
+ 1465 00df 00       		.byte	0
+ 1466 00e0 03       		.uleb128 0x3
+ 1467 00e1 08       		.uleb128 0x8
+ 1468 00e2 3A       		.uleb128 0x3a
+ 1469 00e3 0B       		.uleb128 0xb
+ 1470 00e4 3B       		.uleb128 0x3b
+ 1471 00e5 0B       		.uleb128 0xb
+ 1472 00e6 49       		.uleb128 0x49
+ 1473 00e7 13       		.uleb128 0x13
+ 1474 00e8 00       		.byte	0
+ 1475 00e9 00       		.byte	0
+ 1476 00ea 12       		.uleb128 0x12
+ 1477 00eb 35       		.uleb128 0x35
+ 1478 00ec 00       		.byte	0
+ 1479 00ed 00       		.byte	0
+ 1480 00ee 00       		.byte	0
+ 1481 00ef 13       		.uleb128 0x13
+ 1482 00f0 13       		.uleb128 0x13
+ 1483 00f1 01       		.byte	0x1
+ 1484 00f2 0B       		.uleb128 0xb
+ 1485 00f3 0B       		.uleb128 0xb
+ 1486 00f4 3A       		.uleb128 0x3a
+ 1487 00f5 0B       		.uleb128 0xb
+ 1488 00f6 3B       		.uleb128 0x3b
+ 1489 00f7 0B       		.uleb128 0xb
+ 1490 00f8 01       		.uleb128 0x1
+ 1491 00f9 13       		.uleb128 0x13
+ 1492 00fa 00       		.byte	0
+ 1493 00fb 00       		.byte	0
+ 1494 00fc 14       		.uleb128 0x14
+ 1495 00fd 0D       		.uleb128 0xd
+ 1496 00fe 00       		.byte	0
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 37
+
+
+ 1497 00ff 03       		.uleb128 0x3
+ 1498 0100 08       		.uleb128 0x8
+ 1499 0101 3A       		.uleb128 0x3a
+ 1500 0102 0B       		.uleb128 0xb
+ 1501 0103 3B       		.uleb128 0x3b
+ 1502 0104 0B       		.uleb128 0xb
+ 1503 0105 49       		.uleb128 0x49
+ 1504 0106 13       		.uleb128 0x13
+ 1505 0107 38       		.uleb128 0x38
+ 1506 0108 0A       		.uleb128 0xa
+ 1507 0109 00       		.byte	0
+ 1508 010a 00       		.byte	0
+ 1509 010b 15       		.uleb128 0x15
+ 1510 010c 34       		.uleb128 0x34
+ 1511 010d 00       		.byte	0
+ 1512 010e 03       		.uleb128 0x3
+ 1513 010f 0E       		.uleb128 0xe
+ 1514 0110 3A       		.uleb128 0x3a
+ 1515 0111 0B       		.uleb128 0xb
+ 1516 0112 3B       		.uleb128 0x3b
+ 1517 0113 0B       		.uleb128 0xb
+ 1518 0114 49       		.uleb128 0x49
+ 1519 0115 13       		.uleb128 0x13
+ 1520 0116 00       		.byte	0
+ 1521 0117 00       		.byte	0
+ 1522 0118 16       		.uleb128 0x16
+ 1523 0119 2E       		.uleb128 0x2e
+ 1524 011a 01       		.byte	0x1
+ 1525 011b 3F       		.uleb128 0x3f
+ 1526 011c 0C       		.uleb128 0xc
+ 1527 011d 03       		.uleb128 0x3
+ 1528 011e 0E       		.uleb128 0xe
+ 1529 011f 3A       		.uleb128 0x3a
+ 1530 0120 0B       		.uleb128 0xb
+ 1531 0121 3B       		.uleb128 0x3b
+ 1532 0122 05       		.uleb128 0x5
+ 1533 0123 27       		.uleb128 0x27
+ 1534 0124 0C       		.uleb128 0xc
+ 1535 0125 49       		.uleb128 0x49
+ 1536 0126 13       		.uleb128 0x13
+ 1537 0127 11       		.uleb128 0x11
+ 1538 0128 01       		.uleb128 0x1
+ 1539 0129 12       		.uleb128 0x12
+ 1540 012a 01       		.uleb128 0x1
+ 1541 012b 40       		.uleb128 0x40
+ 1542 012c 06       		.uleb128 0x6
+ 1543 012d 9742     		.uleb128 0x2117
+ 1544 012f 0C       		.uleb128 0xc
+ 1545 0130 01       		.uleb128 0x1
+ 1546 0131 13       		.uleb128 0x13
+ 1547 0132 00       		.byte	0
+ 1548 0133 00       		.byte	0
+ 1549 0134 17       		.uleb128 0x17
+ 1550 0135 05       		.uleb128 0x5
+ 1551 0136 00       		.byte	0
+ 1552 0137 03       		.uleb128 0x3
+ 1553 0138 0E       		.uleb128 0xe
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 38
+
+
+ 1554 0139 3A       		.uleb128 0x3a
+ 1555 013a 0B       		.uleb128 0xb
+ 1556 013b 3B       		.uleb128 0x3b
+ 1557 013c 05       		.uleb128 0x5
+ 1558 013d 49       		.uleb128 0x49
+ 1559 013e 13       		.uleb128 0x13
+ 1560 013f 02       		.uleb128 0x2
+ 1561 0140 06       		.uleb128 0x6
+ 1562 0141 00       		.byte	0
+ 1563 0142 00       		.byte	0
+ 1564 0143 18       		.uleb128 0x18
+ 1565 0144 34       		.uleb128 0x34
+ 1566 0145 00       		.byte	0
+ 1567 0146 03       		.uleb128 0x3
+ 1568 0147 0E       		.uleb128 0xe
+ 1569 0148 3A       		.uleb128 0x3a
+ 1570 0149 0B       		.uleb128 0xb
+ 1571 014a 3B       		.uleb128 0x3b
+ 1572 014b 05       		.uleb128 0x5
+ 1573 014c 49       		.uleb128 0x49
+ 1574 014d 13       		.uleb128 0x13
+ 1575 014e 00       		.byte	0
+ 1576 014f 00       		.byte	0
+ 1577 0150 19       		.uleb128 0x19
+ 1578 0151 13       		.uleb128 0x13
+ 1579 0152 01       		.byte	0x1
+ 1580 0153 0B       		.uleb128 0xb
+ 1581 0154 0B       		.uleb128 0xb
+ 1582 0155 3A       		.uleb128 0x3a
+ 1583 0156 0B       		.uleb128 0xb
+ 1584 0157 3B       		.uleb128 0x3b
+ 1585 0158 05       		.uleb128 0x5
+ 1586 0159 01       		.uleb128 0x1
+ 1587 015a 13       		.uleb128 0x13
+ 1588 015b 00       		.byte	0
+ 1589 015c 00       		.byte	0
+ 1590 015d 1A       		.uleb128 0x1a
+ 1591 015e 0D       		.uleb128 0xd
+ 1592 015f 00       		.byte	0
+ 1593 0160 03       		.uleb128 0x3
+ 1594 0161 0E       		.uleb128 0xe
+ 1595 0162 3A       		.uleb128 0x3a
+ 1596 0163 0B       		.uleb128 0xb
+ 1597 0164 3B       		.uleb128 0x3b
+ 1598 0165 05       		.uleb128 0x5
+ 1599 0166 49       		.uleb128 0x49
+ 1600 0167 13       		.uleb128 0x13
+ 1601 0168 38       		.uleb128 0x38
+ 1602 0169 0A       		.uleb128 0xa
+ 1603 016a 00       		.byte	0
+ 1604 016b 00       		.byte	0
+ 1605 016c 1B       		.uleb128 0x1b
+ 1606 016d 34       		.uleb128 0x34
+ 1607 016e 00       		.byte	0
+ 1608 016f 03       		.uleb128 0x3
+ 1609 0170 08       		.uleb128 0x8
+ 1610 0171 3A       		.uleb128 0x3a
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 39
+
+
+ 1611 0172 0B       		.uleb128 0xb
+ 1612 0173 3B       		.uleb128 0x3b
+ 1613 0174 05       		.uleb128 0x5
+ 1614 0175 49       		.uleb128 0x49
+ 1615 0176 13       		.uleb128 0x13
+ 1616 0177 02       		.uleb128 0x2
+ 1617 0178 06       		.uleb128 0x6
+ 1618 0179 00       		.byte	0
+ 1619 017a 00       		.byte	0
+ 1620 017b 1C       		.uleb128 0x1c
+ 1621 017c 0B       		.uleb128 0xb
+ 1622 017d 01       		.byte	0x1
+ 1623 017e 11       		.uleb128 0x11
+ 1624 017f 01       		.uleb128 0x1
+ 1625 0180 12       		.uleb128 0x12
+ 1626 0181 01       		.uleb128 0x1
+ 1627 0182 01       		.uleb128 0x1
+ 1628 0183 13       		.uleb128 0x13
+ 1629 0184 00       		.byte	0
+ 1630 0185 00       		.byte	0
+ 1631 0186 1D       		.uleb128 0x1d
+ 1632 0187 1D       		.uleb128 0x1d
+ 1633 0188 01       		.byte	0x1
+ 1634 0189 31       		.uleb128 0x31
+ 1635 018a 13       		.uleb128 0x13
+ 1636 018b 11       		.uleb128 0x11
+ 1637 018c 01       		.uleb128 0x1
+ 1638 018d 12       		.uleb128 0x12
+ 1639 018e 01       		.uleb128 0x1
+ 1640 018f 58       		.uleb128 0x58
+ 1641 0190 0B       		.uleb128 0xb
+ 1642 0191 59       		.uleb128 0x59
+ 1643 0192 05       		.uleb128 0x5
+ 1644 0193 01       		.uleb128 0x1
+ 1645 0194 13       		.uleb128 0x13
+ 1646 0195 00       		.byte	0
+ 1647 0196 00       		.byte	0
+ 1648 0197 1E       		.uleb128 0x1e
+ 1649 0198 05       		.uleb128 0x5
+ 1650 0199 00       		.byte	0
+ 1651 019a 31       		.uleb128 0x31
+ 1652 019b 13       		.uleb128 0x13
+ 1653 019c 02       		.uleb128 0x2
+ 1654 019d 06       		.uleb128 0x6
+ 1655 019e 00       		.byte	0
+ 1656 019f 00       		.byte	0
+ 1657 01a0 1F       		.uleb128 0x1f
+ 1658 01a1 1D       		.uleb128 0x1d
+ 1659 01a2 01       		.byte	0x1
+ 1660 01a3 31       		.uleb128 0x31
+ 1661 01a4 13       		.uleb128 0x13
+ 1662 01a5 52       		.uleb128 0x52
+ 1663 01a6 01       		.uleb128 0x1
+ 1664 01a7 55       		.uleb128 0x55
+ 1665 01a8 06       		.uleb128 0x6
+ 1666 01a9 58       		.uleb128 0x58
+ 1667 01aa 0B       		.uleb128 0xb
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 40
+
+
+ 1668 01ab 59       		.uleb128 0x59
+ 1669 01ac 05       		.uleb128 0x5
+ 1670 01ad 01       		.uleb128 0x1
+ 1671 01ae 13       		.uleb128 0x13
+ 1672 01af 00       		.byte	0
+ 1673 01b0 00       		.byte	0
+ 1674 01b1 20       		.uleb128 0x20
+ 1675 01b2 0B       		.uleb128 0xb
+ 1676 01b3 01       		.byte	0x1
+ 1677 01b4 55       		.uleb128 0x55
+ 1678 01b5 06       		.uleb128 0x6
+ 1679 01b6 00       		.byte	0
+ 1680 01b7 00       		.byte	0
+ 1681 01b8 21       		.uleb128 0x21
+ 1682 01b9 34       		.uleb128 0x34
+ 1683 01ba 00       		.byte	0
+ 1684 01bb 31       		.uleb128 0x31
+ 1685 01bc 13       		.uleb128 0x13
+ 1686 01bd 02       		.uleb128 0x2
+ 1687 01be 0A       		.uleb128 0xa
+ 1688 01bf 00       		.byte	0
+ 1689 01c0 00       		.byte	0
+ 1690 01c1 22       		.uleb128 0x22
+ 1691 01c2 1D       		.uleb128 0x1d
+ 1692 01c3 01       		.byte	0x1
+ 1693 01c4 31       		.uleb128 0x31
+ 1694 01c5 13       		.uleb128 0x13
+ 1695 01c6 52       		.uleb128 0x52
+ 1696 01c7 01       		.uleb128 0x1
+ 1697 01c8 55       		.uleb128 0x55
+ 1698 01c9 06       		.uleb128 0x6
+ 1699 01ca 58       		.uleb128 0x58
+ 1700 01cb 0B       		.uleb128 0xb
+ 1701 01cc 59       		.uleb128 0x59
+ 1702 01cd 05       		.uleb128 0x5
+ 1703 01ce 00       		.byte	0
+ 1704 01cf 00       		.byte	0
+ 1705 01d0 23       		.uleb128 0x23
+ 1706 01d1 05       		.uleb128 0x5
+ 1707 01d2 00       		.byte	0
+ 1708 01d3 31       		.uleb128 0x31
+ 1709 01d4 13       		.uleb128 0x13
+ 1710 01d5 00       		.byte	0
+ 1711 01d6 00       		.byte	0
+ 1712 01d7 24       		.uleb128 0x24
+ 1713 01d8 0B       		.uleb128 0xb
+ 1714 01d9 01       		.byte	0x1
+ 1715 01da 11       		.uleb128 0x11
+ 1716 01db 01       		.uleb128 0x1
+ 1717 01dc 12       		.uleb128 0x12
+ 1718 01dd 01       		.uleb128 0x1
+ 1719 01de 00       		.byte	0
+ 1720 01df 00       		.byte	0
+ 1721 01e0 25       		.uleb128 0x25
+ 1722 01e1 898201   		.uleb128 0x4109
+ 1723 01e4 01       		.byte	0x1
+ 1724 01e5 11       		.uleb128 0x11
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 41
+
+
+ 1725 01e6 01       		.uleb128 0x1
+ 1726 01e7 31       		.uleb128 0x31
+ 1727 01e8 13       		.uleb128 0x13
+ 1728 01e9 01       		.uleb128 0x1
+ 1729 01ea 13       		.uleb128 0x13
+ 1730 01eb 00       		.byte	0
+ 1731 01ec 00       		.byte	0
+ 1732 01ed 26       		.uleb128 0x26
+ 1733 01ee 8A8201   		.uleb128 0x410a
+ 1734 01f1 00       		.byte	0
+ 1735 01f2 02       		.uleb128 0x2
+ 1736 01f3 0A       		.uleb128 0xa
+ 1737 01f4 9142     		.uleb128 0x2111
+ 1738 01f6 0A       		.uleb128 0xa
+ 1739 01f7 00       		.byte	0
+ 1740 01f8 00       		.byte	0
+ 1741 01f9 27       		.uleb128 0x27
+ 1742 01fa 898201   		.uleb128 0x4109
+ 1743 01fd 00       		.byte	0
+ 1744 01fe 11       		.uleb128 0x11
+ 1745 01ff 01       		.uleb128 0x1
+ 1746 0200 31       		.uleb128 0x31
+ 1747 0201 13       		.uleb128 0x13
+ 1748 0202 00       		.byte	0
+ 1749 0203 00       		.byte	0
+ 1750 0204 28       		.uleb128 0x28
+ 1751 0205 898201   		.uleb128 0x4109
+ 1752 0208 01       		.byte	0x1
+ 1753 0209 11       		.uleb128 0x11
+ 1754 020a 01       		.uleb128 0x1
+ 1755 020b 31       		.uleb128 0x31
+ 1756 020c 13       		.uleb128 0x13
+ 1757 020d 00       		.byte	0
+ 1758 020e 00       		.byte	0
+ 1759 020f 29       		.uleb128 0x29
+ 1760 0210 01       		.uleb128 0x1
+ 1761 0211 01       		.byte	0x1
+ 1762 0212 49       		.uleb128 0x49
+ 1763 0213 13       		.uleb128 0x13
+ 1764 0214 01       		.uleb128 0x1
+ 1765 0215 13       		.uleb128 0x13
+ 1766 0216 00       		.byte	0
+ 1767 0217 00       		.byte	0
+ 1768 0218 2A       		.uleb128 0x2a
+ 1769 0219 21       		.uleb128 0x21
+ 1770 021a 00       		.byte	0
+ 1771 021b 49       		.uleb128 0x49
+ 1772 021c 13       		.uleb128 0x13
+ 1773 021d 2F       		.uleb128 0x2f
+ 1774 021e 0B       		.uleb128 0xb
+ 1775 021f 00       		.byte	0
+ 1776 0220 00       		.byte	0
+ 1777 0221 2B       		.uleb128 0x2b
+ 1778 0222 2E       		.uleb128 0x2e
+ 1779 0223 01       		.byte	0x1
+ 1780 0224 3F       		.uleb128 0x3f
+ 1781 0225 0C       		.uleb128 0xc
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 42
+
+
+ 1782 0226 03       		.uleb128 0x3
+ 1783 0227 0E       		.uleb128 0xe
+ 1784 0228 3A       		.uleb128 0x3a
+ 1785 0229 0B       		.uleb128 0xb
+ 1786 022a 3B       		.uleb128 0x3b
+ 1787 022b 05       		.uleb128 0x5
+ 1788 022c 27       		.uleb128 0x27
+ 1789 022d 0C       		.uleb128 0xc
+ 1790 022e 11       		.uleb128 0x11
+ 1791 022f 01       		.uleb128 0x1
+ 1792 0230 12       		.uleb128 0x12
+ 1793 0231 01       		.uleb128 0x1
+ 1794 0232 40       		.uleb128 0x40
+ 1795 0233 06       		.uleb128 0x6
+ 1796 0234 9742     		.uleb128 0x2117
+ 1797 0236 0C       		.uleb128 0xc
+ 1798 0237 01       		.uleb128 0x1
+ 1799 0238 13       		.uleb128 0x13
+ 1800 0239 00       		.byte	0
+ 1801 023a 00       		.byte	0
+ 1802 023b 2C       		.uleb128 0x2c
+ 1803 023c 2E       		.uleb128 0x2e
+ 1804 023d 01       		.byte	0x1
+ 1805 023e 3F       		.uleb128 0x3f
+ 1806 023f 0C       		.uleb128 0xc
+ 1807 0240 03       		.uleb128 0x3
+ 1808 0241 0E       		.uleb128 0xe
+ 1809 0242 27       		.uleb128 0x27
+ 1810 0243 0C       		.uleb128 0xc
+ 1811 0244 49       		.uleb128 0x49
+ 1812 0245 13       		.uleb128 0x13
+ 1813 0246 34       		.uleb128 0x34
+ 1814 0247 0C       		.uleb128 0xc
+ 1815 0248 3C       		.uleb128 0x3c
+ 1816 0249 0C       		.uleb128 0xc
+ 1817 024a 01       		.uleb128 0x1
+ 1818 024b 13       		.uleb128 0x13
+ 1819 024c 00       		.byte	0
+ 1820 024d 00       		.byte	0
+ 1821 024e 2D       		.uleb128 0x2d
+ 1822 024f 05       		.uleb128 0x5
+ 1823 0250 00       		.byte	0
+ 1824 0251 49       		.uleb128 0x49
+ 1825 0252 13       		.uleb128 0x13
+ 1826 0253 00       		.byte	0
+ 1827 0254 00       		.byte	0
+ 1828 0255 2E       		.uleb128 0x2e
+ 1829 0256 26       		.uleb128 0x26
+ 1830 0257 00       		.byte	0
+ 1831 0258 00       		.byte	0
+ 1832 0259 00       		.byte	0
+ 1833 025a 2F       		.uleb128 0x2f
+ 1834 025b 2E       		.uleb128 0x2e
+ 1835 025c 00       		.byte	0
+ 1836 025d 3F       		.uleb128 0x3f
+ 1837 025e 0C       		.uleb128 0xc
+ 1838 025f 03       		.uleb128 0x3
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 43
+
+
+ 1839 0260 0E       		.uleb128 0xe
+ 1840 0261 3A       		.uleb128 0x3a
+ 1841 0262 0B       		.uleb128 0xb
+ 1842 0263 3B       		.uleb128 0x3b
+ 1843 0264 0B       		.uleb128 0xb
+ 1844 0265 27       		.uleb128 0x27
+ 1845 0266 0C       		.uleb128 0xc
+ 1846 0267 49       		.uleb128 0x49
+ 1847 0268 13       		.uleb128 0x13
+ 1848 0269 3C       		.uleb128 0x3c
+ 1849 026a 0C       		.uleb128 0xc
+ 1850 026b 00       		.byte	0
+ 1851 026c 00       		.byte	0
+ 1852 026d 30       		.uleb128 0x30
+ 1853 026e 2E       		.uleb128 0x2e
+ 1854 026f 01       		.byte	0x1
+ 1855 0270 3F       		.uleb128 0x3f
+ 1856 0271 0C       		.uleb128 0xc
+ 1857 0272 03       		.uleb128 0x3
+ 1858 0273 0E       		.uleb128 0xe
+ 1859 0274 3A       		.uleb128 0x3a
+ 1860 0275 0B       		.uleb128 0xb
+ 1861 0276 3B       		.uleb128 0x3b
+ 1862 0277 0B       		.uleb128 0xb
+ 1863 0278 27       		.uleb128 0x27
+ 1864 0279 0C       		.uleb128 0xc
+ 1865 027a 3C       		.uleb128 0x3c
+ 1866 027b 0C       		.uleb128 0xc
+ 1867 027c 01       		.uleb128 0x1
+ 1868 027d 13       		.uleb128 0x13
+ 1869 027e 00       		.byte	0
+ 1870 027f 00       		.byte	0
+ 1871 0280 31       		.uleb128 0x31
+ 1872 0281 2E       		.uleb128 0x2e
+ 1873 0282 01       		.byte	0x1
+ 1874 0283 3F       		.uleb128 0x3f
+ 1875 0284 0C       		.uleb128 0xc
+ 1876 0285 03       		.uleb128 0x3
+ 1877 0286 0E       		.uleb128 0xe
+ 1878 0287 3A       		.uleb128 0x3a
+ 1879 0288 0B       		.uleb128 0xb
+ 1880 0289 3B       		.uleb128 0x3b
+ 1881 028a 0B       		.uleb128 0xb
+ 1882 028b 27       		.uleb128 0x27
+ 1883 028c 0C       		.uleb128 0xc
+ 1884 028d 3C       		.uleb128 0x3c
+ 1885 028e 0C       		.uleb128 0xc
+ 1886 028f 00       		.byte	0
+ 1887 0290 00       		.byte	0
+ 1888 0291 00       		.byte	0
+ 1889              		.section	.debug_loc,"",%progbits
+ 1890              	.Ldebug_loc0:
+ 1891              	.LLST0:
+ 1892 0000 00000000 		.4byte	.LFB4
+ 1893 0004 04000000 		.4byte	.LCFI0
+ 1894 0008 0200     		.2byte	0x2
+ 1895 000a 7D       		.byte	0x7d
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 44
+
+
+ 1896 000b 00       		.sleb128 0
+ 1897 000c 04000000 		.4byte	.LCFI0
+ 1898 0010 2C000000 		.4byte	.LFE4
+ 1899 0014 0200     		.2byte	0x2
+ 1900 0016 7D       		.byte	0x7d
+ 1901 0017 08       		.sleb128 8
+ 1902 0018 00000000 		.4byte	0
+ 1903 001c 00000000 		.4byte	0
+ 1904              	.LLST1:
+ 1905 0020 06000000 		.4byte	.LVL0
+ 1906 0024 0A000000 		.4byte	.LVL1
+ 1907 0028 0200     		.2byte	0x2
+ 1908 002a 30       		.byte	0x30
+ 1909 002b 9F       		.byte	0x9f
+ 1910 002c 0A000000 		.4byte	.LVL1
+ 1911 0030 2C000000 		.4byte	.LFE4
+ 1912 0034 0100     		.2byte	0x1
+ 1913 0036 50       		.byte	0x50
+ 1914 0037 00000000 		.4byte	0
+ 1915 003b 00000000 		.4byte	0
+ 1916              	.LLST2:
+ 1917 003f 00000000 		.4byte	.LFB5
+ 1918 0043 02000000 		.4byte	.LCFI1
+ 1919 0047 0200     		.2byte	0x2
+ 1920 0049 7D       		.byte	0x7d
+ 1921 004a 00       		.sleb128 0
+ 1922 004b 02000000 		.4byte	.LCFI1
+ 1923 004f 06000000 		.4byte	.LCFI2
+ 1924 0053 0200     		.2byte	0x2
+ 1925 0055 7D       		.byte	0x7d
+ 1926 0056 14       		.sleb128 20
+ 1927 0057 06000000 		.4byte	.LCFI2
+ 1928 005b 58010000 		.4byte	.LFE5
+ 1929 005f 0300     		.2byte	0x3
+ 1930 0061 7D       		.byte	0x7d
+ 1931 0062 C001     		.sleb128 192
+ 1932 0064 00000000 		.4byte	0
+ 1933 0068 00000000 		.4byte	0
+ 1934              	.LLST3:
+ 1935 006c 00000000 		.4byte	.LVL4
+ 1936 0070 1C000000 		.4byte	.LVL5
+ 1937 0074 0100     		.2byte	0x1
+ 1938 0076 50       		.byte	0x50
+ 1939 0077 1C000000 		.4byte	.LVL5
+ 1940 007b 8C000000 		.4byte	.LVL23
+ 1941 007f 0100     		.2byte	0x1
+ 1942 0081 57       		.byte	0x57
+ 1943 0082 8C000000 		.4byte	.LVL23
+ 1944 0086 28010000 		.4byte	.LVL42
+ 1945 008a 0400     		.2byte	0x4
+ 1946 008c F3       		.byte	0xf3
+ 1947 008d 01       		.uleb128 0x1
+ 1948 008e 50       		.byte	0x50
+ 1949 008f 9F       		.byte	0x9f
+ 1950 0090 28010000 		.4byte	.LVL42
+ 1951 0094 3A010000 		.4byte	.LVL47
+ 1952 0098 0100     		.2byte	0x1
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 45
+
+
+ 1953 009a 57       		.byte	0x57
+ 1954 009b 3A010000 		.4byte	.LVL47
+ 1955 009f 58010000 		.4byte	.LFE5
+ 1956 00a3 0400     		.2byte	0x4
+ 1957 00a5 F3       		.byte	0xf3
+ 1958 00a6 01       		.uleb128 0x1
+ 1959 00a7 50       		.byte	0x50
+ 1960 00a8 9F       		.byte	0x9f
+ 1961 00a9 00000000 		.4byte	0
+ 1962 00ad 00000000 		.4byte	0
+ 1963              	.LLST4:
+ 1964 00b1 00000000 		.4byte	.LVL4
+ 1965 00b5 2F000000 		.4byte	.LVL6-1
+ 1966 00b9 0100     		.2byte	0x1
+ 1967 00bb 51       		.byte	0x51
+ 1968 00bc 2F000000 		.4byte	.LVL6-1
+ 1969 00c0 58010000 		.4byte	.LFE5
+ 1970 00c4 0400     		.2byte	0x4
+ 1971 00c6 F3       		.byte	0xf3
+ 1972 00c7 01       		.uleb128 0x1
+ 1973 00c8 51       		.byte	0x51
+ 1974 00c9 9F       		.byte	0x9f
+ 1975 00ca 00000000 		.4byte	0
+ 1976 00ce 00000000 		.4byte	0
+ 1977              	.LLST5:
+ 1978 00d2 00000000 		.4byte	.LVL4
+ 1979 00d6 76000000 		.4byte	.LVL18
+ 1980 00da 0200     		.2byte	0x2
+ 1981 00dc 30       		.byte	0x30
+ 1982 00dd 9F       		.byte	0x9f
+ 1983 00de 76000000 		.4byte	.LVL18
+ 1984 00e2 7B000000 		.4byte	.LVL19-1
+ 1985 00e6 0100     		.2byte	0x1
+ 1986 00e8 50       		.byte	0x50
+ 1987 00e9 7B000000 		.4byte	.LVL19-1
+ 1988 00ed B8000000 		.4byte	.LVL27
+ 1989 00f1 0100     		.2byte	0x1
+ 1990 00f3 54       		.byte	0x54
+ 1991 00f4 B8000000 		.4byte	.LVL27
+ 1992 00f8 BC000000 		.4byte	.LVL28
+ 1993 00fc 0100     		.2byte	0x1
+ 1994 00fe 53       		.byte	0x53
+ 1995 00ff EC000000 		.4byte	.LVL33
+ 1996 0103 F2000000 		.4byte	.LVL35
+ 1997 0107 0100     		.2byte	0x1
+ 1998 0109 50       		.byte	0x50
+ 1999 010a F2000000 		.4byte	.LVL35
+ 2000 010e 1A010000 		.4byte	.LVL39
+ 2001 0112 0100     		.2byte	0x1
+ 2002 0114 54       		.byte	0x54
+ 2003 0115 1C010000 		.4byte	.LVL40
+ 2004 0119 28010000 		.4byte	.LVL42
+ 2005 011d 0100     		.2byte	0x1
+ 2006 011f 54       		.byte	0x54
+ 2007 0120 28010000 		.4byte	.LVL42
+ 2008 0124 3A010000 		.4byte	.LVL47
+ 2009 0128 0200     		.2byte	0x2
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 46
+
+
+ 2010 012a 30       		.byte	0x30
+ 2011 012b 9F       		.byte	0x9f
+ 2012 012c 00000000 		.4byte	0
+ 2013 0130 00000000 		.4byte	0
+ 2014              	.LLST6:
+ 2015 0134 80000000 		.4byte	.LVL20
+ 2016 0138 28010000 		.4byte	.LVL42
+ 2017 013c 0300     		.2byte	0x3
+ 2018 013e 91       		.byte	0x91
+ 2019 013f D47E     		.sleb128 -172
+ 2020 0141 00000000 		.4byte	0
+ 2021 0145 00000000 		.4byte	0
+ 2022              	.LLST7:
+ 2023 0149 86000000 		.4byte	.LVL21
+ 2024 014d 8A000000 		.4byte	.LVL22
+ 2025 0151 0300     		.2byte	0x3
+ 2026 0153 51       		.byte	0x51
+ 2027 0154 93       		.byte	0x93
+ 2028 0155 04       		.uleb128 0x4
+ 2029 0156 8A000000 		.4byte	.LVL22
+ 2030 015a 28010000 		.4byte	.LVL42
+ 2031 015e 0500     		.2byte	0x5
+ 2032 0160 91       		.byte	0x91
+ 2033 0161 D07E     		.sleb128 -176
+ 2034 0163 93       		.byte	0x93
+ 2035 0164 04       		.uleb128 0x4
+ 2036 0165 00000000 		.4byte	0
+ 2037 0169 00000000 		.4byte	0
+ 2038              	.LLST8:
+ 2039 016d 00000000 		.4byte	.LVL4
+ 2040 0171 5E000000 		.4byte	.LVL14
+ 2041 0175 0200     		.2byte	0x2
+ 2042 0177 30       		.byte	0x30
+ 2043 0178 9F       		.byte	0x9f
+ 2044 0179 28010000 		.4byte	.LVL42
+ 2045 017d 3A010000 		.4byte	.LVL47
+ 2046 0181 0200     		.2byte	0x2
+ 2047 0183 31       		.byte	0x31
+ 2048 0184 9F       		.byte	0x9f
+ 2049 0185 00000000 		.4byte	0
+ 2050 0189 00000000 		.4byte	0
+ 2051              	.LLST9:
+ 2052 018d 00000000 		.4byte	.LVL4
+ 2053 0191 38000000 		.4byte	.LVL7
+ 2054 0195 0200     		.2byte	0x2
+ 2055 0197 30       		.byte	0x30
+ 2056 0198 9F       		.byte	0x9f
+ 2057 0199 46000000 		.4byte	.LVL10
+ 2058 019d 48000000 		.4byte	.LVL11
+ 2059 01a1 0100     		.2byte	0x1
+ 2060 01a3 56       		.byte	0x56
+ 2061 01a4 00000000 		.4byte	0
+ 2062 01a8 00000000 		.4byte	0
+ 2063              	.LLST10:
+ 2064 01ac 00000000 		.4byte	.LVL4
+ 2065 01b0 5E000000 		.4byte	.LVL14
+ 2066 01b4 0200     		.2byte	0x2
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 47
+
+
+ 2067 01b6 30       		.byte	0x30
+ 2068 01b7 9F       		.byte	0x9f
+ 2069 01b8 5E000000 		.4byte	.LVL14
+ 2070 01bc 28010000 		.4byte	.LVL42
+ 2071 01c0 0300     		.2byte	0x3
+ 2072 01c2 91       		.byte	0x91
+ 2073 01c3 C87E     		.sleb128 -184
+ 2074 01c5 28010000 		.4byte	.LVL42
+ 2075 01c9 36010000 		.4byte	.LVL46
+ 2076 01cd 0200     		.2byte	0x2
+ 2077 01cf 30       		.byte	0x30
+ 2078 01d0 9F       		.byte	0x9f
+ 2079 01d1 36010000 		.4byte	.LVL46
+ 2080 01d5 3A010000 		.4byte	.LVL47
+ 2081 01d9 0100     		.2byte	0x1
+ 2082 01db 50       		.byte	0x50
+ 2083 01dc 00000000 		.4byte	0
+ 2084 01e0 00000000 		.4byte	0
+ 2085              	.LLST11:
+ 2086 01e4 00000000 		.4byte	.LVL4
+ 2087 01e8 38000000 		.4byte	.LVL7
+ 2088 01ec 0200     		.2byte	0x2
+ 2089 01ee 30       		.byte	0x30
+ 2090 01ef 9F       		.byte	0x9f
+ 2091 01f0 44000000 		.4byte	.LVL9
+ 2092 01f4 68000000 		.4byte	.LVL16
+ 2093 01f8 0100     		.2byte	0x1
+ 2094 01fa 52       		.byte	0x52
+ 2095 01fb 28010000 		.4byte	.LVL42
+ 2096 01ff 3A010000 		.4byte	.LVL47
+ 2097 0203 0100     		.2byte	0x1
+ 2098 0205 52       		.byte	0x52
+ 2099 0206 00000000 		.4byte	0
+ 2100 020a 00000000 		.4byte	0
+ 2101              	.LLST12:
+ 2102 020e 00000000 		.4byte	.LVL4
+ 2103 0212 38000000 		.4byte	.LVL7
+ 2104 0216 0200     		.2byte	0x2
+ 2105 0218 30       		.byte	0x30
+ 2106 0219 9F       		.byte	0x9f
+ 2107 021a 46000000 		.4byte	.LVL10
+ 2108 021e 5A000000 		.4byte	.LVL13
+ 2109 0222 0100     		.2byte	0x1
+ 2110 0224 51       		.byte	0x51
+ 2111 0225 28010000 		.4byte	.LVL42
+ 2112 0229 3A010000 		.4byte	.LVL47
+ 2113 022d 0100     		.2byte	0x1
+ 2114 022f 51       		.byte	0x51
+ 2115 0230 00000000 		.4byte	0
+ 2116 0234 00000000 		.4byte	0
+ 2117              	.LLST13:
+ 2118 0238 30000000 		.4byte	.LVL6
+ 2119 023c 38000000 		.4byte	.LVL7
+ 2120 0240 0200     		.2byte	0x2
+ 2121 0242 30       		.byte	0x30
+ 2122 0243 9F       		.byte	0x9f
+ 2123 0244 4A000000 		.4byte	.LVL12
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 48
+
+
+ 2124 0248 5E000000 		.4byte	.LVL14
+ 2125 024c 0100     		.2byte	0x1
+ 2126 024e 56       		.byte	0x56
+ 2127 024f 28010000 		.4byte	.LVL42
+ 2128 0253 2A010000 		.4byte	.LVL43
+ 2129 0257 0100     		.2byte	0x1
+ 2130 0259 56       		.byte	0x56
+ 2131 025a 2A010000 		.4byte	.LVL43
+ 2132 025e 30010000 		.4byte	.LVL45
+ 2133 0262 0300     		.2byte	0x3
+ 2134 0264 73       		.byte	0x73
+ 2135 0265 7F       		.sleb128 -1
+ 2136 0266 9F       		.byte	0x9f
+ 2137 0267 00000000 		.4byte	0
+ 2138 026b 00000000 		.4byte	0
+ 2139              	.LLST14:
+ 2140 026f 3E000000 		.4byte	.LVL8
+ 2141 0273 5E000000 		.4byte	.LVL14
+ 2142 0277 0100     		.2byte	0x1
+ 2143 0279 55       		.byte	0x55
+ 2144 027a 28010000 		.4byte	.LVL42
+ 2145 027e 2C010000 		.4byte	.LVL44
+ 2146 0282 0100     		.2byte	0x1
+ 2147 0284 55       		.byte	0x55
+ 2148 0285 00000000 		.4byte	0
+ 2149 0289 00000000 		.4byte	0
+ 2150              	.LLST15:
+ 2151 028d 5E000000 		.4byte	.LVL14
+ 2152 0291 66000000 		.4byte	.LVL15
+ 2153 0295 0100     		.2byte	0x1
+ 2154 0297 54       		.byte	0x54
+ 2155 0298 66000000 		.4byte	.LVL15
+ 2156 029c 73000000 		.4byte	.LVL17-1
+ 2157 02a0 0200     		.2byte	0x2
+ 2158 02a2 75       		.byte	0x75
+ 2159 02a3 00       		.sleb128 0
+ 2160 02a4 73000000 		.4byte	.LVL17-1
+ 2161 02a8 DE000000 		.4byte	.LVL31
+ 2162 02ac 0400     		.2byte	0x4
+ 2163 02ae 91       		.byte	0x91
+ 2164 02af E07E     		.sleb128 -160
+ 2165 02b1 9F       		.byte	0x9f
+ 2166 02b2 DE000000 		.4byte	.LVL31
+ 2167 02b6 E9000000 		.4byte	.LVL32-1
+ 2168 02ba 0200     		.2byte	0x2
+ 2169 02bc 75       		.byte	0x75
+ 2170 02bd 00       		.sleb128 0
+ 2171 02be E9000000 		.4byte	.LVL32-1
+ 2172 02c2 28010000 		.4byte	.LVL42
+ 2173 02c6 0400     		.2byte	0x4
+ 2174 02c8 91       		.byte	0x91
+ 2175 02c9 E07E     		.sleb128 -160
+ 2176 02cb 9F       		.byte	0x9f
+ 2177 02cc 00000000 		.4byte	0
+ 2178 02d0 00000000 		.4byte	0
+ 2179              	.LLST16:
+ 2180 02d4 5E000000 		.4byte	.LVL14
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 49
+
+
+ 2181 02d8 28010000 		.4byte	.LVL42
+ 2182 02dc 0200     		.2byte	0x2
+ 2183 02de 34       		.byte	0x34
+ 2184 02df 9F       		.byte	0x9f
+ 2185 02e0 00000000 		.4byte	0
+ 2186 02e4 00000000 		.4byte	0
+ 2187              	.LLST17:
+ 2188 02e8 80000000 		.4byte	.LVL20
+ 2189 02ec 28010000 		.4byte	.LVL42
+ 2190 02f0 0600     		.2byte	0x6
+ 2191 02f2 F2       		.byte	0xf2
+ 2192 02f3 6E020000 		.4byte	.Ldebug_info0+622
+ 2193 02f7 00       		.sleb128 0
+ 2194 02f8 00000000 		.4byte	0
+ 2195 02fc 00000000 		.4byte	0
+ 2196              	.LLST18:
+ 2197 0300 86000000 		.4byte	.LVL21
+ 2198 0304 28010000 		.4byte	.LVL42
+ 2199 0308 0200     		.2byte	0x2
+ 2200 030a 35       		.byte	0x35
+ 2201 030b 9F       		.byte	0x9f
+ 2202 030c 00000000 		.4byte	0
+ 2203 0310 00000000 		.4byte	0
+ 2204              	.LLST19:
+ 2205 0314 86000000 		.4byte	.LVL21
+ 2206 0318 8C000000 		.4byte	.LVL23
+ 2207 031c 0100     		.2byte	0x1
+ 2208 031e 57       		.byte	0x57
+ 2209 031f 8C000000 		.4byte	.LVL23
+ 2210 0323 28010000 		.4byte	.LVL42
+ 2211 0327 0400     		.2byte	0x4
+ 2212 0329 F3       		.byte	0xf3
+ 2213 032a 01       		.uleb128 0x1
+ 2214 032b 50       		.byte	0x50
+ 2215 032c 9F       		.byte	0x9f
+ 2216 032d 00000000 		.4byte	0
+ 2217 0331 00000000 		.4byte	0
+ 2218              	.LLST20:
+ 2219 0335 9C000000 		.4byte	.LVL24
+ 2220 0339 A2000000 		.4byte	.LVL25
+ 2221 033d 0400     		.2byte	0x4
+ 2222 033f 91       		.byte	0x91
+ 2223 0340 D87E     		.sleb128 -168
+ 2224 0342 9F       		.byte	0x9f
+ 2225 0343 A2000000 		.4byte	.LVL25
+ 2226 0347 B2000000 		.4byte	.LVL26
+ 2227 034b 0100     		.2byte	0x1
+ 2228 034d 50       		.byte	0x50
+ 2229 034e B2000000 		.4byte	.LVL26
+ 2230 0352 CB000000 		.4byte	.LVL29-1
+ 2231 0356 0200     		.2byte	0x2
+ 2232 0358 75       		.byte	0x75
+ 2233 0359 00       		.sleb128 0
+ 2234 035a CB000000 		.4byte	.LVL29-1
+ 2235 035e 28010000 		.4byte	.LVL42
+ 2236 0362 0400     		.2byte	0x4
+ 2237 0364 91       		.byte	0x91
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 50
+
+
+ 2238 0365 D87E     		.sleb128 -168
+ 2239 0367 9F       		.byte	0x9f
+ 2240 0368 00000000 		.4byte	0
+ 2241 036c 00000000 		.4byte	0
+ 2242              	.LLST21:
+ 2243 0370 9C000000 		.4byte	.LVL24
+ 2244 0374 28010000 		.4byte	.LVL42
+ 2245 0378 0200     		.2byte	0x2
+ 2246 037a 35       		.byte	0x35
+ 2247 037b 9F       		.byte	0x9f
+ 2248 037c 00000000 		.4byte	0
+ 2249 0380 00000000 		.4byte	0
+ 2250              	.LLST22:
+ 2251 0384 DA000000 		.4byte	.LVL30
+ 2252 0388 DE000000 		.4byte	.LVL31
+ 2253 038c 0400     		.2byte	0x4
+ 2254 038e 91       		.byte	0x91
+ 2255 038f E07E     		.sleb128 -160
+ 2256 0391 9F       		.byte	0x9f
+ 2257 0392 DE000000 		.4byte	.LVL31
+ 2258 0396 E9000000 		.4byte	.LVL32-1
+ 2259 039a 0200     		.2byte	0x2
+ 2260 039c 75       		.byte	0x75
+ 2261 039d 00       		.sleb128 0
+ 2262 039e E9000000 		.4byte	.LVL32-1
+ 2263 03a2 1A010000 		.4byte	.LVL39
+ 2264 03a6 0400     		.2byte	0x4
+ 2265 03a8 91       		.byte	0x91
+ 2266 03a9 E07E     		.sleb128 -160
+ 2267 03ab 9F       		.byte	0x9f
+ 2268 03ac 00000000 		.4byte	0
+ 2269 03b0 00000000 		.4byte	0
+ 2270              	.LLST23:
+ 2271 03b4 DA000000 		.4byte	.LVL30
+ 2272 03b8 1A010000 		.4byte	.LVL39
+ 2273 03bc 0200     		.2byte	0x2
+ 2274 03be 34       		.byte	0x34
+ 2275 03bf 9F       		.byte	0x9f
+ 2276 03c0 00000000 		.4byte	0
+ 2277 03c4 00000000 		.4byte	0
+ 2278              	.LLST24:
+ 2279 03c8 EE000000 		.4byte	.LVL34
+ 2280 03cc 1A010000 		.4byte	.LVL39
+ 2281 03d0 0200     		.2byte	0x2
+ 2282 03d2 36       		.byte	0x36
+ 2283 03d3 9F       		.byte	0x9f
+ 2284 03d4 00000000 		.4byte	0
+ 2285 03d8 00000000 		.4byte	0
+ 2286              	.LLST25:
+ 2287 03dc 02010000 		.4byte	.LVL36
+ 2288 03e0 08010000 		.4byte	.LVL37
+ 2289 03e4 0100     		.2byte	0x1
+ 2290 03e6 53       		.byte	0x53
+ 2291 03e7 08010000 		.4byte	.LVL37
+ 2292 03eb 14010000 		.4byte	.LVL38
+ 2293 03ef 0200     		.2byte	0x2
+ 2294 03f1 75       		.byte	0x75
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 51
+
+
+ 2295 03f2 00       		.sleb128 0
+ 2296 03f3 14010000 		.4byte	.LVL38
+ 2297 03f7 1A010000 		.4byte	.LVL39
+ 2298 03fb 0200     		.2byte	0x2
+ 2299 03fd 70       		.byte	0x70
+ 2300 03fe 00       		.sleb128 0
+ 2301 03ff 00000000 		.4byte	0
+ 2302 0403 00000000 		.4byte	0
+ 2303              	.LLST26:
+ 2304 0407 02010000 		.4byte	.LVL36
+ 2305 040b 1A010000 		.4byte	.LVL39
+ 2306 040f 0200     		.2byte	0x2
+ 2307 0411 36       		.byte	0x36
+ 2308 0412 9F       		.byte	0x9f
+ 2309 0413 00000000 		.4byte	0
+ 2310 0417 00000000 		.4byte	0
+ 2311              	.LLST27:
+ 2312 041b 1C010000 		.4byte	.LVL40
+ 2313 041f 28010000 		.4byte	.LVL42
+ 2314 0423 0600     		.2byte	0x6
+ 2315 0425 F2       		.byte	0xf2
+ 2316 0426 6E020000 		.4byte	.Ldebug_info0+622
+ 2317 042a 00       		.sleb128 0
+ 2318 042b 00000000 		.4byte	0
+ 2319 042f 00000000 		.4byte	0
+ 2320              	.LLST28:
+ 2321 0433 00000000 		.4byte	.LFB6
+ 2322 0437 02000000 		.4byte	.LCFI3
+ 2323 043b 0200     		.2byte	0x2
+ 2324 043d 7D       		.byte	0x7d
+ 2325 043e 00       		.sleb128 0
+ 2326 043f 02000000 		.4byte	.LCFI3
+ 2327 0443 30000000 		.4byte	.LFE6
+ 2328 0447 0200     		.2byte	0x2
+ 2329 0449 7D       		.byte	0x7d
+ 2330 044a 08       		.sleb128 8
+ 2331 044b 00000000 		.4byte	0
+ 2332 044f 00000000 		.4byte	0
+ 2333              	.LLST29:
+ 2334 0453 00000000 		.4byte	.LVL48
+ 2335 0457 12000000 		.4byte	.LVL49
+ 2336 045b 0100     		.2byte	0x1
+ 2337 045d 50       		.byte	0x50
+ 2338 045e 12000000 		.4byte	.LVL49
+ 2339 0462 16000000 		.4byte	.LVL50
+ 2340 0466 0400     		.2byte	0x4
+ 2341 0468 F3       		.byte	0xf3
+ 2342 0469 01       		.uleb128 0x1
+ 2343 046a 50       		.byte	0x50
+ 2344 046b 9F       		.byte	0x9f
+ 2345 046c 16000000 		.4byte	.LVL50
+ 2346 0470 1A000000 		.4byte	.LVL51
+ 2347 0474 0100     		.2byte	0x1
+ 2348 0476 50       		.byte	0x50
+ 2349 0477 1A000000 		.4byte	.LVL51
+ 2350 047b 20000000 		.4byte	.LVL52
+ 2351 047f 0400     		.2byte	0x4
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 52
+
+
+ 2352 0481 F3       		.byte	0xf3
+ 2353 0482 01       		.uleb128 0x1
+ 2354 0483 50       		.byte	0x50
+ 2355 0484 9F       		.byte	0x9f
+ 2356 0485 20000000 		.4byte	.LVL52
+ 2357 0489 22000000 		.4byte	.LVL53
+ 2358 048d 0100     		.2byte	0x1
+ 2359 048f 50       		.byte	0x50
+ 2360 0490 22000000 		.4byte	.LVL53
+ 2361 0494 25000000 		.4byte	.LVL54-1
+ 2362 0498 0300     		.2byte	0x3
+ 2363 049a 73       		.byte	0x73
+ 2364 049b 03       		.sleb128 3
+ 2365 049c 9F       		.byte	0x9f
+ 2366 049d 25000000 		.4byte	.LVL54-1
+ 2367 04a1 30000000 		.4byte	.LFE6
+ 2368 04a5 0400     		.2byte	0x4
+ 2369 04a7 F3       		.byte	0xf3
+ 2370 04a8 01       		.uleb128 0x1
+ 2371 04a9 50       		.byte	0x50
+ 2372 04aa 9F       		.byte	0x9f
+ 2373 04ab 00000000 		.4byte	0
+ 2374 04af 00000000 		.4byte	0
+ 2375              		.section	.debug_aranges,"",%progbits
+ 2376 0000 2C000000 		.4byte	0x2c
+ 2377 0004 0200     		.2byte	0x2
+ 2378 0006 00000000 		.4byte	.Ldebug_info0
+ 2379 000a 04       		.byte	0x4
+ 2380 000b 00       		.byte	0
+ 2381 000c 0000     		.2byte	0
+ 2382 000e 0000     		.2byte	0
+ 2383 0010 00000000 		.4byte	.LFB4
+ 2384 0014 2C000000 		.4byte	.LFE4-.LFB4
+ 2385 0018 00000000 		.4byte	.LFB5
+ 2386 001c 58010000 		.4byte	.LFE5-.LFB5
+ 2387 0020 00000000 		.4byte	.LFB6
+ 2388 0024 30000000 		.4byte	.LFE6-.LFB6
+ 2389 0028 00000000 		.4byte	0
+ 2390 002c 00000000 		.4byte	0
+ 2391              		.section	.debug_ranges,"",%progbits
+ 2392              	.Ldebug_ranges0:
+ 2393 0000 7C000000 		.4byte	.LBB27
+ 2394 0004 7E000000 		.4byte	.LBE27
+ 2395 0008 80000000 		.4byte	.LBB31
+ 2396 000c 82000000 		.4byte	.LBE31
+ 2397 0010 84000000 		.4byte	.LBB39
+ 2398 0014 86000000 		.4byte	.LBE39
+ 2399 0018 00000000 		.4byte	0
+ 2400 001c 00000000 		.4byte	0
+ 2401 0020 82000000 		.4byte	.LBB32
+ 2402 0024 84000000 		.4byte	.LBE32
+ 2403 0028 86000000 		.4byte	.LBB40
+ 2404 002c B0000000 		.4byte	.LBE40
+ 2405 0030 00000000 		.4byte	0
+ 2406 0034 00000000 		.4byte	0
+ 2407 0038 82000000 		.4byte	.LBB33
+ 2408 003c 84000000 		.4byte	.LBE33
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 53
+
+
+ 2409 0040 86000000 		.4byte	.LBB38
+ 2410 0044 B0000000 		.4byte	.LBE38
+ 2411 0048 00000000 		.4byte	0
+ 2412 004c 00000000 		.4byte	0
+ 2413 0050 98000000 		.4byte	.LBB34
+ 2414 0054 9A000000 		.4byte	.LBE34
+ 2415 0058 9C000000 		.4byte	.LBB37
+ 2416 005c B0000000 		.4byte	.LBE37
+ 2417 0060 00000000 		.4byte	0
+ 2418 0064 00000000 		.4byte	0
+ 2419 0068 D2000000 		.4byte	.LBB41
+ 2420 006c D4000000 		.4byte	.LBE41
+ 2421 0070 DA000000 		.4byte	.LBB44
+ 2422 0074 E6000000 		.4byte	.LBE44
+ 2423 0078 00000000 		.4byte	0
+ 2424 007c 00000000 		.4byte	0
+ 2425 0080 FE000000 		.4byte	.LBB47
+ 2426 0084 00010000 		.4byte	.LBE47
+ 2427 0088 02010000 		.4byte	.LBB50
+ 2428 008c 12010000 		.4byte	.LBE50
+ 2429 0090 00000000 		.4byte	0
+ 2430 0094 00000000 		.4byte	0
+ 2431 0098 00000000 		.4byte	.LFB4
+ 2432 009c 2C000000 		.4byte	.LFE4
+ 2433 00a0 00000000 		.4byte	.LFB5
+ 2434 00a4 58010000 		.4byte	.LFE5
+ 2435 00a8 00000000 		.4byte	.LFB6
+ 2436 00ac 30000000 		.4byte	.LFE6
+ 2437 00b0 00000000 		.4byte	0
+ 2438 00b4 00000000 		.4byte	0
+ 2439              		.section	.debug_line,"",%progbits
+ 2440              	.Ldebug_line0:
+ 2441 0000 6E010000 		.section	.debug_str,"MS",%progbits,1
+ 2441      02005100 
+ 2441      00000201 
+ 2441      FB0E0D00 
+ 2441      01010101 
+ 2442              	.LASF10:
+ 2443 0000 75696E74 		.ascii	"uint16\000"
+ 2443      313600
+ 2444              	.LASF48:
+ 2445 0007 43794578 		.ascii	"CyExitCriticalSection\000"
+ 2445      69744372 
+ 2445      69746963 
+ 2445      616C5365 
+ 2445      6374696F 
+ 2446              	.LASF42:
+ 2447 001d 73617665 		.ascii	"savedValue\000"
+ 2447      6456616C 
+ 2447      756500
+ 2448              	.LASF43:
+ 2449 0028 63686563 		.ascii	"checksum\000"
+ 2449      6B73756D 
+ 2449      00
+ 2450              	.LASF25:
+ 2451 0031 726F774E 		.ascii	"rowNum\000"
+ 2451      756D00
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 54
+
+
+ 2452              	.LASF22:
+ 2453 0038 72657456 		.ascii	"retValue\000"
+ 2453      616C7565 
+ 2453      00
+ 2454              	.LASF7:
+ 2455 0041 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2455      206C6F6E 
+ 2455      6720756E 
+ 2455      7369676E 
+ 2455      65642069 
+ 2456              	.LASF35:
+ 2457 0058 62797465 		.ascii	"byteAddr\000"
+ 2457      41646472 
+ 2457      00
+ 2458              	.LASF6:
+ 2459 0061 6C6F6E67 		.ascii	"long long int\000"
+ 2459      206C6F6E 
+ 2459      6720696E 
+ 2459      7400
+ 2460              	.LASF0:
+ 2461 006f 7369676E 		.ascii	"signed char\000"
+ 2461      65642063 
+ 2461      68617200 
+ 2462              	.LASF45:
+ 2463 007b 66726571 		.ascii	"freq\000"
+ 2463      00
+ 2464              	.LASF33:
+ 2465 0080 696E7465 		.ascii	"interruptState\000"
+ 2465      72727570 
+ 2465      74537461 
+ 2465      746500
+ 2466              	.LASF23:
+ 2467 008f 43795379 		.ascii	"CySysFlashExecSysCall\000"
+ 2467      73466C61 
+ 2467      73684578 
+ 2467      65635379 
+ 2467      7343616C 
+ 2468              	.LASF44:
+ 2469 00a5 62697473 		.ascii	"bits\000"
+ 2469      00
+ 2470              	.LASF4:
+ 2471 00aa 6C6F6E67 		.ascii	"long int\000"
+ 2471      20696E74 
+ 2471      00
+ 2472              	.LASF46:
+ 2473 00b3 6D656D63 		.ascii	"memcpy\000"
+ 2473      707900
+ 2474              	.LASF9:
+ 2475 00ba 75696E74 		.ascii	"uint8\000"
+ 2475      3800
+ 2476              	.LASF24:
+ 2477 00c0 43795379 		.ascii	"CySysFlashCallProgramRow\000"
+ 2477      73466C61 
+ 2477      73684361 
+ 2477      6C6C5072 
+ 2477      6F677261 
+ 2478              	.LASF13:
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 55
+
+
+ 2479 00d9 646F7562 		.ascii	"double\000"
+ 2479      6C6500
+ 2480              	.LASF50:
+ 2481 00e0 2E5C4765 		.ascii	".\\Generated_Source\\PSoC4\\CyFlash.c\000"
+ 2481      6E657261 
+ 2481      7465645F 
+ 2481      536F7572 
+ 2481      63655C50 
+ 2482              	.LASF11:
+ 2483 0103 75696E74 		.ascii	"uint32\000"
+ 2483      333200
+ 2484              	.LASF19:
+ 2485 010a 43795379 		.ascii	"CySysFlashRestoreClock\000"
+ 2485      73466C61 
+ 2485      73685265 
+ 2485      73746F72 
+ 2485      65436C6F 
+ 2486              	.LASF21:
+ 2487 0121 76616C75 		.ascii	"value\000"
+ 2487      6500
+ 2488              	.LASF8:
+ 2489 0127 756E7369 		.ascii	"unsigned int\000"
+ 2489      676E6564 
+ 2489      20696E74 
+ 2489      00
+ 2490              	.LASF5:
+ 2491 0134 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2491      20756E73 
+ 2491      69676E65 
+ 2491      6420696E 
+ 2491      7400
+ 2492              	.LASF56:
+ 2493 0146 4379456E 		.ascii	"CyEnterCriticalSection\000"
+ 2493      74657243 
+ 2493      72697469 
+ 2493      63616C53 
+ 2493      65637469 
+ 2494              	.LASF38:
+ 2495 015d 64617461 		.ascii	"data\000"
+ 2495      00
+ 2496              	.LASF3:
+ 2497 0162 73686F72 		.ascii	"short unsigned int\000"
+ 2497      7420756E 
+ 2497      7369676E 
+ 2497      65642069 
+ 2497      6E7400
+ 2498              	.LASF26:
+ 2499 0175 6F706572 		.ascii	"operation\000"
+ 2499      6174696F 
+ 2499      6E00
+ 2500              	.LASF28:
+ 2501 017f 6B657931 		.ascii	"key1\000"
+ 2501      00
+ 2502              	.LASF29:
+ 2503 0184 6B657932 		.ascii	"key2\000"
+ 2503      00
+ 2504              	.LASF16:
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 56
+
+
+ 2505 0189 72656733 		.ascii	"reg32\000"
+ 2505      3200
+ 2506              	.LASF17:
+ 2507 018f 73697A65 		.ascii	"sizetype\000"
+ 2507      74797065 
+ 2507      00
+ 2508              	.LASF20:
+ 2509 0198 73617665 		.ascii	"saved\000"
+ 2509      6400
+ 2510              	.LASF52:
+ 2511 019e 43795379 		.ascii	"CySysFlashClockState\000"
+ 2511      73466C61 
+ 2511      7368436C 
+ 2511      6F636B53 
+ 2511      74617465 
+ 2512              	.LASF40:
+ 2513 01b3 6E656564 		.ascii	"needChecksumWorkaround\000"
+ 2513      43686563 
+ 2513      6B73756D 
+ 2513      576F726B 
+ 2513      61726F75 
+ 2514              	.LASF36:
+ 2515 01ca 666C6173 		.ascii	"flashMacro\000"
+ 2515      684D6163 
+ 2515      726F00
+ 2516              	.LASF18:
+ 2517 01d5 43795379 		.ascii	"CySysFlashSetupClock\000"
+ 2517      73466C61 
+ 2517      73685365 
+ 2517      74757043 
+ 2517      6C6F636B 
+ 2518              	.LASF12:
+ 2519 01ea 666C6F61 		.ascii	"float\000"
+ 2519      7400
+ 2520              	.LASF49:
+ 2521 01f0 474E5520 		.ascii	"GNU C 4.7.3 20130312 (release) [ARM/embedded-4_7-br"
+ 2521      4320342E 
+ 2521      372E3320 
+ 2521      32303133 
+ 2521      30333132 
+ 2522 0223 616E6368 		.ascii	"anch revision 196615]\000"
+ 2522      20726576 
+ 2522      6973696F 
+ 2522      6E203139 
+ 2522      36363135 
+ 2523              	.LASF57:
+ 2524 0239 43794861 		.ascii	"CyHalt\000"
+ 2524      6C7400
+ 2525              	.LASF1:
+ 2526 0240 756E7369 		.ascii	"unsigned char\000"
+ 2526      676E6564 
+ 2526      20636861 
+ 2526      7200
+ 2527              	.LASF53:
+ 2528 024e 43795379 		.ascii	"CySysFlashHandleLoadResult\000"
+ 2528      73466C61 
+ 2528      73684861 
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 57
+
+
+ 2528      6E646C65 
+ 2528      4C6F6164 
+ 2529              	.LASF2:
+ 2530 0269 73686F72 		.ascii	"short int\000"
+ 2530      7420696E 
+ 2530      7400
+ 2531              	.LASF51:
+ 2532 0273 433A5C55 		.ascii	"C:\\Users\\Peter Gregory\\cypress\\WordClock\\UART_"
+ 2532      73657273 
+ 2532      5C506574 
+ 2532      65722047 
+ 2532      7265676F 
+ 2533 02a1 426F6F74 		.ascii	"Bootloader.cydsn\000"
+ 2533      6C6F6164 
+ 2533      65722E63 
+ 2533      7964736E 
+ 2533      00
+ 2534              	.LASF34:
+ 2535 02b2 73617665 		.ascii	"savedClkCfg\000"
+ 2535      64436C6B 
+ 2535      43666700 
+ 2536              	.LASF14:
+ 2537 02be 63686172 		.ascii	"char\000"
+ 2537      00
+ 2538              	.LASF41:
+ 2539 02c3 73617665 		.ascii	"savedIndex\000"
+ 2539      64496E64 
+ 2539      657800
+ 2540              	.LASF37:
+ 2541 02ce 6E756D42 		.ascii	"numBytesMinusOne\000"
+ 2541      79746573 
+ 2541      4D696E75 
+ 2541      734F6E65 
+ 2541      00
+ 2542              	.LASF47:
+ 2543 02df 6D656D73 		.ascii	"memset\000"
+ 2543      657400
+ 2544              	.LASF54:
+ 2545 02e6 43795379 		.ascii	"CySysFlashWriteRow\000"
+ 2545      73466C61 
+ 2545      73685772 
+ 2545      69746552 
+ 2545      6F7700
+ 2546              	.LASF15:
+ 2547 02f9 63797374 		.ascii	"cystatus\000"
+ 2547      61747573 
+ 2547      00
+ 2548              	.LASF55:
+ 2549 0302 43795379 		.ascii	"CySysFlashSetWaitCycles\000"
+ 2549      73466C61 
+ 2549      73685365 
+ 2549      74576169 
+ 2549      74437963 
+ 2550              	.LASF30:
+ 2551 031a 726F7744 		.ascii	"rowData\000"
+ 2551      61746100 
+ 2552              	.LASF39:
+ARM GAS  C:\Users\PETERG~1\AppData\Local\Temp\ccrd4eFT.s 			page 58
+
+
+ 2553 0322 6C6F6164 		.ascii	"loadBuf\000"
+ 2553      42756600 
+ 2554              	.LASF31:
+ 2555 032a 61726773 		.ascii	"args\000"
+ 2555      00
+ 2556              	.LASF32:
+ 2557 032f 73746174 		.ascii	"statusCode\000"
+ 2557      7573436F 
+ 2557      646500
+ 2558              	.LASF27:
+ 2559 033a 696D6F43 		.ascii	"imoConfigReg\000"
+ 2559      6F6E6669 
+ 2559      67526567 
+ 2559      00
+ 2560              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 4.7.3 20130312 (release) [ARM/embedded-4_7-br
